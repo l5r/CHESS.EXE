@@ -13,62 +13,70 @@ P386
 MODEL FLAT, C
 ASSUME cs:_TEXT,ds:FLAT,es:FLAT,fs:FLAT,gs:FLAT
 
+; compile-time constants (with macros)
+VIDMEM EQU 0A0000h	; video memory address
+WIDTH EQU 320		; screen witdth
+HEIGHT EQU 200		; screen height
 ; -------------------------------------------------------------------
 ; CODE
 ; -------------------------------------------------------------------
 CODESEG
 
-	PROC main:
-	PUSH ds      	; push ds segments to the STACK
-	SUB AX, AX   	; clean AX
-	PUSH AX	    	; push AX to stack
-	MOV AX, ds  	; save on AX content of ds
-	MOV ds, AX	; save on ds content of AX
-	POP AX		; release top item from stack
-	POP AX		; same
 
-		MOV AH, 10h	;set config to video mode
-		MOV AL, 13h	;choose video mode
-		INT 10h		;execute
+PROC VideoMode
+	ARG	@@VM:byte
+	USES	eax
 
-		MOV AH, 0Bh	;set config to background color
-		MOV BH, 00h	;
-		MOV BL, 00h	;set bg as black
-		INT 10h		;execute
+	movzx 	ax, [@@VM]
+	int 	10h
 
-		CALL draw_square
+	ret
+ENDP VideoMode
 
-		RET
+PROC Background
+	ARG	@@color:byte
+	USES	eax, ecx, edi
 
-	ENDP main
+	MOV 	edi, VIDMEM
 
-	PROC draw_square:
+	MOV 	ecx, WIDTH*HEIGHT
+	MOV	al, [@@color]
+	rep 	stosb
 
-		MOV CX, SQUARE_X
-		MOV DX, SQUARE_Y
+	ret
+ENDP Background
 
-		DRAW_SQUARE_HORIZONTAL:
-			MOV AH,0Ch     ; set the config to writing a pixel
-			MOV AL,0Fh     ; set color to white
-			MOV BH,00h     ; set the page number
-			INT 10h        ; execute the config
+PROC draw_square:
 
-			INC CX         ; CX is counter and you higher item
-			MOV AX, CX     ; move column into AX registers
-			SUB AX,SQUARE_X
-			CMP AX,SQUARE_SIZE
-			JNG DRAW_SQUARE_HORIZONTAL
+	MOV 	cx, SQUARE_X
+	MOV 	dx, SQUARE_Y
 
-			MOV CX, SQUARE_X ; CX register goed back to initial column
-			INC DX         ; we advance one line
+DRAW_SQUARE_HORIZONTAL:
+	MOV 	ah,0Ch     	 ; set the config to writing a pixel
+	MOV 	al,0Fh    	 ; set color to white
+	MOV 	bh,00h    	 ; set the page number
+	INT 	10h       	 ; execute the config
 
-			MOV AX,DX
-			SUB AX,SQUARE_Y
-			CMP AX, SQUARE_SIZE
-			JNG DRAW_SQUARE_HORIZONTAL
+	INC 	cx        	 ; CX is counter and you higher item
+	MOV 	ax, cx    	 ; move column into AX registers
+	SUB 	ax,SQUARE_X
+	CMP 	ax,SQUARE_SIZE
+	JNG 	DRAW_SQUARE_HORIZONTAL
 
-			RET
-		DRAW_SQUARE ENDP
+	MOV 	cx, SQUARE_X 	 ; CX register goed back to initial column
+	INC 	dx        	 ; we advance one line
+
+	MOV 	ax,dx
+	SUB 	ax,SQUARE_Y
+	CMP 	ax, SQUARE_SIZE
+	JNG 	DRAW_SQUARE_HORIZONTAL
+
+	ret
+ENDP draw_square
+
+
+
+
 
 DATASEG
 SQUARE_X DW 00h ; x coordinate SQUARE
