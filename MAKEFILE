@@ -1,0 +1,28 @@
+
+# =============================================================================
+# Project makefile
+# =============================================================================
+
+# Settings - Edit the names of the object and executable files.
+objects = CHESS.obj
+dest = CHESS.EXE
+
+# =============================================================================
+# Do NOT edit this section, unless you know what you are doing.
+# =============================================================================
+.asm.obj
+  # use TASM with debug info (stripped anyway by wlink if not used)
+  tasm /ml /m2 /w2 /z /zi $<
+
+$(dest): $(objects)
+  wlink option quiet system pmodew name $@ file {$(objects)}
+
+clean: .symbolic
+  del *.obj
+  del $(dest)
+
+.silent
+debug: $(objects) .symbolic
+  wlink debug watcom all option quiet system pmodew name $(dest) file {$(objects)}
+  wd /tr=rsi /li=43 $(dest)
+
