@@ -19,8 +19,8 @@ ASSUME cs:_TEXT,ds:FLAT,es:FLAT,fs:FLAT,gs:FLAT
 CODESEG
 
 start:
-     sti            ; set The Interrupt Flag => enable interrupts
-     cld            ; clear The Direction Flag
+	sti            ; set The Interrupt Flag => enable interrupts
+	cld            ; clear The Direction Flag
 
 	; Print string.
 	mov ah, 09h
@@ -32,7 +32,7 @@ start:
 	int 16h
 
 	; Terminate process with return code in response to a keystroke.
-    mov	ax,4C00h
+    	mov	ax,4C00h
 	int 	21h
 
 ; -------------------------------------------------------------------
