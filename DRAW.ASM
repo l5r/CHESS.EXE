@@ -15,8 +15,8 @@ ASSUME cs:_TEXT,ds:FLAT,es:FLAT,fs:FLAT,gs:FLAT
 
 ; compile-time constants (with macros)
 VIDMEM EQU 0A0000h	; video memory address
-WIDTH EQU 320		; screen witdth
-HEIGHT EQU 200		; screen height
+WIDTH EQU 256		; screen witdth
+HEIGHT EQU 256		; screen height
 ; -------------------------------------------------------------------
 ; CODE
 ; -------------------------------------------------------------------
