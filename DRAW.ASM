@@ -117,7 +117,6 @@ DATASEG
 SQUARE_X DB 00h ; x coordinate SQUARE
 SQUARE_Y DB 00h ; y coordinate SQUARE
 SQUARE_SIZE DB 0Fh ;square must be 16px
-COLOR DW
 
 STACK 100 H
 
