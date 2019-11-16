@@ -80,7 +80,7 @@ ENDP draw_square
 PROC draw_board:
 
 	ARG
-	USES 	eax, ebx, ecx, edx
+	USES 	eax, ecx, edx
 
 	xor 	cx,cx
 
@@ -92,7 +92,7 @@ loop2:
 	JZ 	draw_white
 	CALL 	draw_square,08h,[SQUARE_X],[SQUARE_Y]
 	MOV 	ax, 0Fh
-	ADD 	[@@x], ax
+	ADD 	[SQUARE_X], ax
 
 	inc 	dx
 	cmp 	dx, 08h
@@ -101,11 +101,11 @@ loop2:
 draw_white:
 	CALL 	draw_square,0Fh,[SQUARE_X],[SQUARE_Y]
 	MOV 	ax, 0Fh
-	ADD 	[@@x], ax
+	ADD 	[SQUARE_X], ax
 
 	inc 	cx
 	MOV 	ax, 0Fh
-	ADD 	[@@y], ax
+	ADD 	[SQUARE_Y], ax
 	cmp 	cx, 08h
 	jle 	loop1
 
