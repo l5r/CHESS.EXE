@@ -37,10 +37,10 @@ PROC Background
 	ARG	@@color:byte
 	USES	eax, ecx, edi
 
-	MOV 	edi, VIDMEM
+	mov 	edi, VIDMEM
 
-	MOV 	ecx, WIDTH*HEIGHT
-	MOV	al, [@@color]
+	mov 	ecx, WIDTH*HEIGHT
+	mov	al, [@@color]
 	rep 	stosb
 
 	ret
@@ -51,28 +51,28 @@ PROC draw_square:
 	ARG	@@color:byte, @@x:byte, @@y:byte
 	USES	eax, ecx, edx
 
-	MOV 	cx, [@@x]
-	MOV 	dx, [@@y]
+	mov 	cx, [@@x]
+	mov 	dx, [@@y]
 
 DRAW_SQUARE_HORIZONTAL:
-	MOV 	ah,0Ch     	 ; set the config to writing a pixel
-	MOV 	al,[@@color]   	 ; set color to white
-	MOV 	bh,00h    	 ; set the page number
-	INT 	10h       	 ; execute the config
+	mov 	ah,0Ch     	 ; set the config to writing a pixel
+	mov 	al,[@@color]   	 ; set color to white
+	mov 	bh,00h    	 ; set the page number
+	int 	10h       	 ; execute the config
 
-	INC 	cx        	 ; CX is counter and you higher item
-	MOV 	ax, cx    	 ; move column into AX registers
-	SUB 	ax,[@@x]
-	CMP 	ax,[SQUARE_SIZE]
-	JNG 	DRAW_SQUARE_HORIZONTAL
+	inc 	cx        	 ; CX is counter and you higher item
+	mov 	ax, cx    	 ; move column into AX registers
+	sub 	ax,[@@x]
+	cmp 	ax,[SQUARE_SIZE]
+	jng 	DRAW_SQUARE_HORIZONTAL
 
-	MOV 	cx, [@@x]	 ; CX register goed back to initial column
-	INC 	dx        	 ; we advance one line
+	mov 	cx, [@@x]	 ; CX register goed back to initial column
+	inc 	dx        	 ; we advance one line
 
-	MOV 	ax,dx
-	SUB 	ax,[@@y]
-	CMP 	ax, [SQUARE_SIZE]
-	JNG 	DRAW_SQUARE_HORIZONTAL
+	mov 	ax,dx
+	sub 	ax,[@@y]
+	cmp 	ax, [SQUARE_SIZE]
+	jng 	DRAW_SQUARE_HORIZONTAL
 
 	ret
 ENDP draw_square
@@ -87,31 +87,52 @@ PROC draw_board:
 loop1:
 	xor 	dx,dx
 
-loop2:
-	test 	dx, 01h
-	JZ 	draw_white
-	CALL 	draw_square,08h,[SQUARE_X],[SQUARE_Y]
-	MOV 	ax, 0Fh
-	ADD 	[SQUARE_X], ax
+	loop2:
+		test 	dx, 01h
+		jz 	draw_white
+		call 	draw_square,08h,[SQUARE_X],[SQUARE_Y]
+		mov 	ax, 0Fh
+		add 	[SQUARE_X], ax
 
 	inc 	dx
 	cmp 	dx, 08h
 	jle 	loop2
 
 draw_white:
-	CALL 	draw_square,0Fh,[SQUARE_X],[SQUARE_Y]
-	MOV 	ax, 0Fh
-	ADD 	[SQUARE_X], ax
+	call 	draw_square,0Fh,[SQUARE_X],[SQUARE_Y]
+	mov 	ax, 0Fh
+	add 	[SQUARE_X], ax
 
 	inc 	cx
-	MOV 	ax, 0Fh
-	ADD 	[SQUARE_Y], ax
+	mov 	ax, 0Fh
+	add 	[SQUARE_Y], ax
 	cmp 	cx, 08h
 	jle 	loop1
 
 	ret
 ENDP draw_board
 
+PROC clean_screen
+
+	ARG
+	USES
+
+	mov	ah,0Ch
+	mov	cx,100h
+
+loop1:
+	mov 	dx,100h
+
+	loop2:
+		int 	10h
+		cmp	dx,0h
+		dec	dx
+		jne	loop2
+
+	loop	loop1
+
+	ret
+ENDP clean_screen
 
 DATASEG
 SQUARE_X DB 00h ; x coordinate SQUARE
