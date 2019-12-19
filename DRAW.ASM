@@ -54,7 +54,7 @@ PROC draw_square:
 	mov 	cx, [@@x]
 	mov 	dx, [@@y]
 
-DRAW_SQUARE_HORIZONTAL:
+@@draw_square_horizontal:
 	mov 	ah,0Ch     	 ; set the config to writing a pixel
 	mov 	al,[@@color]   	 ; set color to white
 	mov 	bh,00h    	 ; set the page number
@@ -64,7 +64,7 @@ DRAW_SQUARE_HORIZONTAL:
 	mov 	ax, cx    	 ; move column into AX registers
 	sub 	ax,[@@x]
 	cmp 	ax,[SQUARE_SIZE]
-	jng 	DRAW_SQUARE_HORIZONTAL
+	jng 	draw_square_horizontal
 
 	mov 	cx, [@@x]	 ; CX register goed back to initial column
 	inc 	dx        	 ; we advance one line
@@ -72,10 +72,12 @@ DRAW_SQUARE_HORIZONTAL:
 	mov 	ax,dx
 	sub 	ax,[@@y]
 	cmp 	ax, [SQUARE_SIZE]
-	jng 	DRAW_SQUARE_HORIZONTAL
+	jng 	draw_square_horizontal
 
 	ret
 ENDP draw_square
+
+PROC highlight_square:
 
 PROC draw_board:
 
@@ -84,24 +86,24 @@ PROC draw_board:
 
 	xor 	cx,cx
 
-loop1:
+@@loop1:
 	xor 	dx,dx
 
-	loop2:
+	@@loop2:
 		test 	dx, 01h
 		jz 	draw_white
 		call 	draw_square,08h,[SQUARE_X],[SQUARE_Y]
 		mov 	ax, 0Fh
 		add 	[SQUARE_X], ax
 
+	@@draw_white:
+		call 	draw_square,0Fh,[SQUARE_X],[SQUARE_Y]
+		mov 	ax, 0Fh
+		add 	[SQUARE_X], ax
+
 	inc 	dx
 	cmp 	dx, 08h
 	jle 	loop2
-
-draw_white:
-	call 	draw_square,0Fh,[SQUARE_X],[SQUARE_Y]
-	mov 	ax, 0Fh
-	add 	[SQUARE_X], ax
 
 	inc 	cx
 	mov 	ax, 0Fh
@@ -112,7 +114,43 @@ draw_white:
 	ret
 ENDP draw_board
 
-PROC clean_screen
+PROC highlight_square ;WPO4
+	ARG 	@@x0:word, @@y0:word, @@col: byte
+	USES 	eax, ecx, edx, edi ; note: MUL uses edx!
+
+	; Compute the index of the rectangle's top left corner
+	movzx eax, [@@y0]
+	mov edx, SCRWIDTH
+	mul edx
+	add	ax, [@@x0]
+
+	; Compute top left corner address
+	mov edi, VMEMADR
+	add edi, eax
+
+	; Plot the top horizontal edge.
+	movzx edx, [SQUARE_SIZE]	; store width in edx for later reuse
+	mov	ecx, edx
+	mov	al,[SQUARE_SIZE]
+	rep stosb
+	sub edi, edx		; reset edi to left-top corner
+
+	; plot both vertical edges
+	movzx ecx,[SQUARE_SIZE]
+	@@vertLoop:
+		mov	[edi],al		; left edge
+		mov	[edi+edx-1],al	; right edge
+		add	edi, SCRWIDTH
+		loop @@vertLoop
+	; edi should point at the bottom-left corner now
+	sub edi, SCRWIDTH
+
+	; Plot the bottom horizontal edge.
+	mov	ecx, edx
+	rep stosb
+	ret
+ENDP highlight_square
+PROC clean_screen:
 
 	ARG
 	USES
@@ -120,10 +158,10 @@ PROC clean_screen
 	mov	ah,0Ch
 	mov	cx,100h
 
-loop1:
+@@loop1:
 	mov 	dx,100h
 
-	loop2:
+	@@loop2:
 		int 	10h
 		cmp	dx,0h
 		dec	dx
@@ -133,6 +171,8 @@ loop1:
 
 	ret
 ENDP clean_screen
+
+
 
 DATASEG
 SQUARE_X DB 00h ; x coordinate SQUARE
