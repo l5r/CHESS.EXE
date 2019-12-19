@@ -24,7 +24,7 @@ CODESEG
 
 
 PROC VideoMode
-	ARG	@@VM:byte
+	ARG	@@VM:dword
 	USES	eax
 
 	movzx 	ax, [@@VM]
@@ -34,7 +34,7 @@ PROC VideoMode
 ENDP VideoMode
 
 PROC Background
-	ARG	@@color:byte
+	ARG	@@color:dword
 	USES	eax, ecx, edi
 
 	mov 	edi, VIDMEM
@@ -48,7 +48,7 @@ ENDP Background
 
 PROC draw_square:
 
-	ARG	@@color:byte, @@x:byte, @@y:byte
+	ARG	@@color:dword, @@x:dword, @@y:dword
 	USES	eax, ecx, edx
 
 	mov 	cx, [@@x]
@@ -115,7 +115,7 @@ PROC draw_board:
 ENDP draw_board
 
 PROC highlight_square ;WPO4
-	ARG 	@@x0:word, @@y0:word, @@col: byte
+	ARG 	@@x0:dword, @@y0:dword, @@col: dword
 	USES 	eax, ecx, edx, edi ; note: MUL uses edx!
 
 	; Compute the index of the rectangle's top left corner
@@ -153,7 +153,7 @@ ENDP highlight_square
 PROC clean_screen:
 
 	ARG
-	USES
+	USES	eax, ecx, edx
 
 	mov	ah,0Ch
 	mov	cx,100h
