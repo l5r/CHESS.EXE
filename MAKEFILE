@@ -4,7 +4,7 @@
 # =============================================================================
 
 # Settings - Edit the names of the object and executable files.
-objects = CHESS.obj
+objects = CHESS.obj DRAW.obj
 dest = CHESS.EXE
 
 # =============================================================================
