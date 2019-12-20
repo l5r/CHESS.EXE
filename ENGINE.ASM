@@ -7,20 +7,34 @@ INCLUDE "ENGINE.INC"
 
 CODESEG
 
+PROC do_move
+	ARG @@move_from:dword, @@move_to:dword
+	USES eax, ebx
 
-DATASEG 
+	mov eax, 0h
+	mov ebx, [@@move_from]
+	mov [@@move_to], ebx
+	mov [@@move_from], eax
 
-P EQU piece
-B EQU BLACK
-W EQU WHITE
-K EQU piece_kind king
-Q EQU piece_kind queen	
-R EQU piece_kind rook
-N EQU piece_kind knight
-B EQU piece_kind bishop
-P EQU piece_kind pawn
+ENDP do_move
 
-BOARD piece	P <B,R>, <B,N>, 62 DUP (<>)
+
+DATASEG
+
+b EQU 0
+w EQU 1
+K EQU 1
+Q EQU 2
+R EQU 3
+N EQU 4
+B EQU 5
+P EQU 6
+
+BOARD piece	<b,R>, <b,N>, <b,B>, <b,Q>, <b,K>, <b,B>, <b,N>, <b,R>, \
+		<b,P>, <b,P>, <b,P>, <b,P>, <b,P>, <b,P>, <b,P>, <b,P>, \
+		32 DUP (<>), \
+		<w,R>, <w,N>, <w,B>, <w,Q>, <w,K>, <w,B>, <w,N>, <w,R>, \
+		<w,P>, <w,P>, <w,P>, <w,P>, <w,P>, <w,P>, <w,P>, <w,P> \
 ; vim:set noet filetype=tasm:
 
 END
