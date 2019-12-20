@@ -13,6 +13,8 @@ P386
 MODEL FLAT, C
 ASSUME cs:_TEXT,ds:FLAT,es:FLAT,fs:FLAT,gs:FLAT
 
+INCLUDE "DRAW.INC"
+
 ; -------------------------------------------------------------------
 ; CODE
 ; -------------------------------------------------------------------
@@ -22,14 +24,16 @@ start:
 	sti            ; set The Interrupt Flag => enable interrupts
 	cld            ; clear The Direction Flag
 
-	; Print string.
-	mov ah, 09h
-	mov edx, offset msg
-	int 21h
+	call	video_mode, 13h
+	call	background, 0bh
+	call	draw_board
 
 	; Wait for keystroke and read character.
 	mov ah,00h
 	int 16h
+
+	; Reset video mode for the terminal.
+	call	video_mode, 03h
 
 	; Terminate process with return code in response to a keystroke.
     	mov	ax,4C00h
@@ -39,7 +43,6 @@ start:
 ; DATA
 ; -------------------------------------------------------------------
 DATASEG
-	msg	db "Hello CHESS.EXE!", 13, 10, '$'
 
 ; -------------------------------------------------------------------
 ; STACK

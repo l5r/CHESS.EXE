@@ -13,17 +13,20 @@ P386
 MODEL FLAT, C
 ASSUME cs:_TEXT,ds:FLAT,es:FLAT,fs:FLAT,gs:FLAT
 
+INCLUDE "DRAW.INC"
+
 ; compile-time constants (with macros)
 VMEMADDR EQU 0A0000h	; video memory address
 SCR_WIDTH EQU 320		; screen witdth
-SCR_HEIGHT EQU 230		; screen height
+SCR_HEIGHT EQU 200		; screen height
+SQUARE_SIZE EQU 16
 ; -------------------------------------------------------------------
 ; CODE
 ; -------------------------------------------------------------------
 CODESEG
 
 
-PROC VideoMode
+PROC video_mode
 	ARG	@@VM:dword
 	USES	eax
 
@@ -31,9 +34,9 @@ PROC VideoMode
 	int 	10h
 
 	ret
-ENDP VideoMode
+ENDP video_mode
 
-PROC Background
+PROC background
 	ARG	@@color:dword
 	USES	eax, ecx, edi
 
@@ -44,35 +47,36 @@ PROC Background
 	rep 	stosb
 
 	ret
-ENDP Background
+ENDP background
 
 PROC draw_square
 
 	ARG	@@color:dword, @@x:dword, @@y:dword
-	USES	eax, ecx, edx
+	USES	eax, ebx, ecx, edx
 
-	mov 	cx, [WORD PTR @@x]
-	mov 	dx, [WORD PTR @@y]
+	mov 	eax, [@@y]
+	mov	edx, SCR_WIDTH
+	mul	edx
 
-@@draw_square_horizontal:
-	mov 	ah, 0Ch     	 ; set the config to writing a pixel
-	mov 	al, [BYTE PTR @@color]; set color to white
-	mov 	bh, 00h    	 ; set the page number
-	int 	10h       	 ; execute the config
+	add	eax, VMEMADDR
+	add	eax, [@@x]
+	mov	edi, eax
 
-	inc 	cx        	 ; CX is counter and you higher item
-	mov 	ax, cx    	 ; move column into AX registers
-	sub 	ax,[WORD PTR @@x]
-	cmp 	ax,[SQUARE_SIZE]
-	jng 	@@draw_square_horizontal
+	cld
+	xor	ebx,ebx
 
-	mov 	cx, [WORD PTR @@x]	 ; CX register goed back to initial column
-	inc 	dx        	 ; we advance one line
+@@draw_line:
+	mov	ecx, SQUARE_SIZE
+	mov	eax, [@@color]
 
-	mov 	ax,dx
-	sub 	ax,[WORD PTR @@y]
-	cmp 	ax, [SQUARE_SIZE]
-	jng 	@@draw_square_horizontal
+	rep stosb
+
+	add	edi, SCR_WIDTH
+	sub	edi, SQUARE_SIZE
+	inc	ebx
+
+	cmp	ebx, SQUARE_SIZE
+	jnz	@@draw_line
 
 	ret
 ENDP draw_square
@@ -80,7 +84,7 @@ ENDP draw_square
 
 PROC draw_board
 
-	USES 	eax, ecx, edx
+	USES 	eax, ebx, ecx, edx
 	LOCAL	@@x:dword
 	LOCAL	@@y:dword
 
@@ -88,30 +92,36 @@ PROC draw_board
 	mov	[@@x],ecx
 	mov	[@@y],ecx
 
+	xor	bx, bx
+
 @@loop1:
 	xor 	dx,dx
 
-	@@loop2:
-		test 	dx, 01h
-		jz 	@@draw_white
-		call 	draw_square,08h,[@@x],[@@y]
-		mov 	ax, 0Fh
-		add 	[WORD PTR @@x], ax
-
-	@@draw_white:
-		call 	draw_square,0Fh,[@@x],[@@y]
-		mov 	ax, 0Fh
-		add 	[WORD PTR @@y], ax
+@@loop2:
+	test	bx, 1
+	jz 	@@draw_white
+	call 	draw_square,08h,[@@x],[@@y]
+	jmp	@@end_draw_white
+@@draw_white:
+	call 	draw_square,0Fh,[@@x],[@@y]
+@@end_draw_white:
+	mov 	ax, 10h
+	add 	[WORD PTR @@x], ax
+	inc	bx
 
 	inc 	dx
 	cmp 	dx, 08h
-	jle 	@@loop2
+	jl 	@@loop2
 
+	xor	ax, ax
+	mov	[WORD PTR @@x], ax
+
+	inc	bx
 	inc 	cx
-	mov 	ax, 0Fh
+	mov 	ax, 10h
 	add 	[WORD PTR @@y], ax
 	cmp 	cx, 08h
-	jle 	@@loop1
+	jl 	@@loop1
 
 	ret
 ENDP draw_board
@@ -131,14 +141,14 @@ PROC highlight_square ;WPO4
 	add edi, eax
 
 	; Plot the top horizontal edge.
-	movzx	edx, [SQUARE_SIZE]	; store width in edx for later reuse
+	mov	edx, SQUARE_SIZE	; store width in edx for later reuse
 	mov	ecx, edx
-	mov	al,[BYTE PTR SQUARE_SIZE]
+	mov	al,SQUARE_SIZE
 	rep stosb
 	sub	edi, edx		; reset edi to left-top corner
 
 	; plot both vertical edges
-	movzx	ecx,[SQUARE_SIZE]
+	mov	ecx,SQUARE_SIZE
 	@@vertLoop:
 		mov	[edi],al		; left edge
 		mov	[edi+edx-1],al	; right edge
@@ -177,9 +187,6 @@ ENDP clean_screen
 
 
 DATASEG
-SQUARE_X DB 00h ; x coordinate SQUARE
-SQUARE_Y DB 00h ; y coordinate SQUARE
-SQUARE_SIZE DW 0Fh ;square must be 16px
 
 STACK 100H
 
