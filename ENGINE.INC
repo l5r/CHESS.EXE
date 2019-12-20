@@ -20,6 +20,9 @@ RECORD piece {
 	kind:7 = 0
 }
 
+COLOR_MASK EQU MASK color
+KIND_MASK EQU MASK kind
+
 STRUC position
 	x DB ?
 	y DB ?

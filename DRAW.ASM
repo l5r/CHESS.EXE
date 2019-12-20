@@ -14,10 +14,11 @@ MODEL FLAT, C
 ASSUME cs:_TEXT,ds:FLAT,es:FLAT,fs:FLAT,gs:FLAT
 
 INCLUDE "DRAW.INC"
+INCLUDE "ENGINE.INC"
 INCLUDE "ASSETS.INC"
 
 ; compile-time constants (with macros)
-VMEMADDR EQU 09e560h	; video memory address
+VMEMADDR EQU 0A0000h		; video memory address
 SCR_WIDTH EQU 320		; screen witdth
 SCR_HEIGHT EQU 200		; screen height
 SQUARE_SIZE EQU 16
@@ -36,6 +37,25 @@ PROC video_mode
 
 	ret
 ENDP video_mode
+
+PROC load_palette
+	ARG	@@idx:dword, @@r:dword, @@g:dword, @@b:dword
+	USES	eax, edx
+
+	cld
+
+	mov	dx, 03C8h
+	mov	al, 0h
+	out	dx, al
+	
+	mov	esi, offset PALLETTE
+	mov	ecx, PALLETTE_SIZE
+
+	rep outsb
+
+	ret
+
+ENDP load_palette
 
 PROC background
 	ARG	@@color:dword
@@ -85,14 +105,55 @@ ENDP draw_square
 PROC draw_piece
 
 	ARG @@piece:dword, @@x:dword, @@y:dword
-	USES eax
+	USES eax, ebx, ecx, edx
 
-	mov al, [BYTE PTR @@piece]
-	and al, 0FFh - 080h
-	cmp al, 0
-	jz @@return
-	dec al
-	mov eax, [PIECE_IMG_TABLE + eax * 8]
+	mov	eax, [@@piece]
+	mov	ebx, eax
+	and	eax, KIND_MASK
+	cmp	eax, 0
+	jz	@@return
+	dec	eax
+
+	and	ebx, COLOR_MASK
+	shr	ebx, 7
+
+	shl	eax, 1
+	add	eax, ebx
+	mov	ebx, [PIECE_IMG_TABLE + eax * 4]
+
+	mov	eax, [@@y]
+	mov	edx, SCR_WIDTH
+	mul	edx
+
+	add	eax, VMEMADDR
+	add	eax, [@@x]
+
+	xor	dh, dh
+@@loop_y:
+
+	xor	ecx, ecx
+@@loop_x:
+	
+	mov	dl, [ebx]
+	;mov	dl, 6
+	cmp	dl, 0
+	jz	@@alpha_no_copy
+	mov	[eax], dl
+
+@@alpha_no_copy:
+	inc	ebx
+	inc	ecx
+	inc	eax
+
+	cmp	ecx, SQUARE_SIZE
+	jnz	@@loop_x
+
+	add	eax, SCR_WIDTH
+	sub	eax, SQUARE_SIZE
+
+	inc	dh
+	cmp	dh, SQUARE_SIZE
+	jnz	@@loop_y
 
 @@return:
 	ret
@@ -102,9 +163,11 @@ ENDP draw_piece
 
 PROC draw_board
 
-	USES 	eax, ebx, ecx, edx
+	USES 	eax, ebx, ecx, edx, esi
 	LOCAL	@@x:dword
 	LOCAL	@@y:dword
+
+	mov	eax, offset BOARD
 
 	xor 	ecx,ecx
 	mov	[@@x],ecx
@@ -123,21 +186,22 @@ PROC draw_board
 @@draw_white:
 	call 	draw_square,0Fh,[@@x],[@@y]
 @@end_draw_white:
-	mov 	ax, 10h
-	add 	[WORD PTR @@x], ax
+
+	call	draw_piece, [eax], [@@x], [@@y]
+	inc	eax
+
+	add 	[WORD PTR @@x], SQUARE_SIZE
 	inc	bx
 
 	inc 	dx
 	cmp 	dx, 08h
 	jl 	@@loop2
 
-	xor	ax, ax
-	mov	[WORD PTR @@x], ax
+	mov	[WORD PTR @@x], 0
 
 	inc	bx
 	inc 	cx
-	mov 	ax, 10h
-	add 	[WORD PTR @@y], ax
+	add 	[WORD PTR @@y], SQUARE_SIZE
 	cmp 	cx, 08h
 	jl 	@@loop1
 

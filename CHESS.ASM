@@ -25,6 +25,10 @@ start:
 	sti            ; set The Interrupt Flag => enable interrupts
 	cld            ; clear The Direction Flag
 
+	; Setup for string functions
+	push	ds
+	pop		es
+
 	call	video_mode, 13h
 	call	background, 0bh
 	call	draw_board
