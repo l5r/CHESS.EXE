@@ -11,15 +11,68 @@ PROC do_move
 	ARG @@move_from:dword, @@move_to:dword
 	USES eax, ebx
 
-	mov eax, 0h
-	mov ebx, [@@move_from]
-	mov [@@move_to], ebx
-	mov [@@move_from], eax
+	mov	eax, [@@move_from]
+	xor	ebx, ebx
+	mov	bl, ah
+	add	ebx, OFFSET BOARD
+	and	eax, 0FFh
+	mov	bl, [ebx + eax*8]
 
+	and	ebx, KIND_MASK
+	cmp	ebx, 0h
+	jz	@@return ; Don't move empty pieces
+	mov	eax, [MOVE_VALIDATION_TABLE + ebx * 4]
+	call	eax, [@@move_from], [@@move_to]
+
+	cmp	eax, 0h
+	jz	@@return
+
+	mov	eax, [@@move_from]
+	mov	[@@move_to], eax
+	mov	[@@move_from], 0h
+
+@@return:
+	ret
 ENDP do_move
+
+PROC always_ok
+	ARG @@move_from:dword, @@move_to:dword
+	mov	eax, 1
+	ret
+ENDP always_ok
+
+PROC validate_rook
+	ARG @@move_from:dword, @@move_to:dword
+
+	USES ebx
+	mov	eax, [@@move_from]
+	mov	ebx, [@@move_to]
+
+	cmp	al, bl ; y == y
+	jz	@@ok
+	
+	cmp	ah, bh ; x == x
+	jz	@@ok
+
+	xor	eax, eax
+	ret
+@@ok:
+	mov	eax, 1
+	ret
+ENDP validate_rook
 
 
 DATASEG
+
+MOVE_VALIDATION_TABLE \
+DD	always_ok,	\ ; No piece, should this be possible?
+	always_ok, 	\ ; King
+	always_ok, 	\ ; Queen
+	validate_rook,	\ ; Rook
+	always_ok,	\ ; Knight
+	always_ok, 	\ ; Bishop
+	always_ok  	  ; Pawn
+
 
 b EQU 0
 w EQU 1
