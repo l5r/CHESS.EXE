@@ -39,7 +39,6 @@ PROC video_mode
 ENDP video_mode
 
 PROC load_palette
-	ARG	@@idx:dword, @@r:dword, @@g:dword, @@b:dword
 	USES	eax, edx
 
 	cld
@@ -48,6 +47,7 @@ PROC load_palette
 	mov	al, 0h
 	out	dx, al
 	
+	mov	dx, 03C9h
 	mov	esi, offset PALLETTE
 	mov	ecx, PALLETTE_SIZE
 
@@ -181,13 +181,13 @@ PROC draw_board
 @@loop2:
 	test	bx, 1
 	jz 	@@draw_white
-	call 	draw_square,08h,[@@x],[@@y]
+	call 	draw_square,03h,[@@x],[@@y]
 	jmp	@@end_draw_white
 @@draw_white:
-	call 	draw_square,0Fh,[@@x],[@@y]
+	call 	draw_square,04h,[@@x],[@@y]
 @@end_draw_white:
 
-	call	draw_piece, [eax], [@@x], [@@y]
+	call	draw_piece, [DWORD PTR eax], [@@x], [@@y]
 	inc	eax
 
 	add 	[WORD PTR @@x], SQUARE_SIZE
@@ -216,7 +216,7 @@ PROC highlight_square ;WPO4
 	mov	eax, [@@y0]
 	mov	edx, SCR_WIDTH
 	mul	edx
-	add	ax, [WORD PTR @@x0]
+	add	eax, [@@x0]
 
 	; Compute top left corner address
 	mov edi, VMEMADDR
@@ -277,6 +277,17 @@ PIECE_IMG_TABLE DD	IMG_KING_B_DATA,	IMG_KING_W_DATA,	\
 			IMG_BISHOP_B_DATA,	IMG_BISHOP_W_DATA,	\
 			IMG_PAWN_B_DATA,	IMG_PAWN_W_DATA
 
+PALLETTE DB	004h, 004h, 008h, \ ; Background
+		008h, 008h, 008h, \ ; Piece black
+		030h, 030h, 030h, \ ; Piece white
+		00Fh, 00Fh, 00Fh, \ ; Tile black
+		02Ah, 02Ah, 02Ah, \ ; Tile white
+
+PALLETTE_SIZE = $ - PALLETTE
+
 STACK 100H
 
 END
+
+; vim:set noet filetype=tasm:
+

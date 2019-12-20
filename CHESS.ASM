@@ -27,71 +27,83 @@ start:
 
 	; Setup for string functions
 	push	ds
-	pop		es
+	pop	es
 
 	call	video_mode, 13h
-	call	background, 0bh
+	call	load_palette
+	call	background, 00h
 	call	draw_board
-	call 	highlight_square(BEGIN_X, BEGIN_Y)
+	call 	highlight_square, [BEGIN_X], [BEGIN_Y]
+
+@@read_key:
 	; check keystroke
 	mov 	ah,01h
 	int 	16h
-	jz	@@not_pressed_key
+	jz	@@end_pressed_key
 
-@@pressed_key:
+	; get contents of key
 	mov 	ah, 0h
-	cmp 	cx, 2190
+	int	16h
+
+	mov 	edx, 10h
+
+	cmp 	ah, 01Eh ; A
 	jz	@@left_key_pressed
-	cmp 	cx, 2191
-	jz 	@@up_key_pressed
-	cmp 	cx, 2192
-	jnz 	@@down_key_pressed
-	mov 	dx, 10h
-
-@@right_key_pressed:
-
-	sub 	[BEGIN_X], dx
-	call 	highlight_square(BEGIN_X, BEGIN_Y)
-	ret
+	cmp	ah, 020h ; D
+	jz	@@right_key_pressed
+	cmp 	ah, 011h ; W
+	jz	@@up_key_pressed
+	cmp 	ah, 01Fh ; S
+	jz 	@@down_key_pressed
+	cmp 	ah, 023h ; H
+	jz	@@left_key_pressed
+	cmp	ah, 026h ; L
+	jz	@@right_key_pressed
+	cmp 	ah, 025h ; W
+	jz	@@up_key_pressed
+	cmp 	ah, 024h ; J
+	jz 	@@down_key_pressed
+	cmp	ah, 081h ; ESC
+	jz	@@quit
+	jmp	@@quit
+	jmp	@@read_key
 
 @@left_key_pressed:
-
-	add 	[BEGIN_X], dx
-	call 	highlight_square(BEGIN_X, BEGIN_Y)
-	ret
-
+	sub 	[BEGIN_X], edx
+	jmp	@@end_pressed_key
+@@right_key_pressed:
+	add 	[BEGIN_X], edx
+	jmp	@@end_pressed_key
 @@up_key_pressed:
-
-	add	[BEGIN_Y], dx
-	call 	highlight_square(BEGIN_X, BEGIN_Y)
-	ret
-
+	sub	[BEGIN_Y], edx
+	jmp	@@end_pressed_key
 @@down_key_pressed:
-	sub 	[BEGIN_Y], dx
-	call 	highlight_square(BEGIN_X, BEGIN_Y)
-	ret
+	add 	[BEGIN_Y], edx
+	jmp	@@end_pressed_key
 
-	int 	16h
+@@end_pressed_key:
+	call 	highlight_square, [BEGIN_X], [BEGIN_Y]
+	jmp	@@read_key
 
-@@no_pressed_key:
-
+@@quit:
 	; Reset video mode for the terminal.
 	call	video_mode, 03h
 
 	; Terminate process with return code in response to a keystroke.
-    	mov	ax,4C00h
+	mov		ax,4C00h
 	int 	21h
 
 ; -------------------------------------------------------------------
 ; DATA
 ; -------------------------------------------------------------------
 DATASEG
-BEGIN_X 0h
-BEGIN_Y 0h
+BEGIN_X DD 0h
+BEGIN_Y DD 0h
 ; -------------------------------------------------------------------
 ; STACK
 ; -------------------------------------------------------------------
 STACK 100h
 
 END start
-; vim:set noet sts=4 sw=4 ts=4 filetype=tasm:
+; vim:set noet filetype=tasm:
+
