@@ -16,7 +16,7 @@ ASSUME cs:_TEXT,ds:FLAT,es:FLAT,fs:FLAT,gs:FLAT
 INCLUDE "DRAW.INC"
 
 ; compile-time constants (with macros)
-VMEMADDR EQU 0A0000h	; video memory address
+VMEMADDR EQU 09e560h	; video memory address
 SCR_WIDTH EQU 320		; screen witdth
 SCR_HEIGHT EQU 200		; screen height
 SQUARE_SIZE EQU 16
