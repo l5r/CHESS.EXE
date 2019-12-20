@@ -16,8 +16,8 @@ ENUM piece_kind {
 }
 
 RECORD piece {
-	color:1
-	kind:7
+	color:1 = 0
+	kind:7 = 0
 }
 
 STRUC position
