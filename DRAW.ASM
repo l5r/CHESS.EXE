@@ -225,7 +225,7 @@ PROC highlight_square ;WPO4
 	; Plot the top horizontal edge.
 	mov	edx, SQUARE_SIZE	; store width in edx for later reuse
 	mov	ecx, edx
-	mov	al,SQUARE_SIZE
+	mov	al, 0h
 	rep stosb
 	sub	edi, edx		; reset edi to left-top corner
 
