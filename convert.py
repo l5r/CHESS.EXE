@@ -19,6 +19,7 @@ def convert_img_to_asm(image, name, colormap):
     inc += "IMG_{}_WIDTH EQU {}\n".format(uppername, width)
     inc += "IMG_{}_HEIGHT EQU {}\n".format(uppername, height)
     inc += "IMG_{}_SIZE EQU {}\n".format(uppername, width * height)
+    inc += "GLOBAL IMG_{}_DATA:BYTE:{}".format(uppername, width * height)
     inc += "\n"
 
     asm += "IMG_{}_DATA\n".format(uppername)
@@ -44,7 +45,7 @@ def main(args):
                         help='map a colour to an integer value', nargs=2,
                         action='append')
     parser.add_argument('-i', '--include', type=argparse.FileType('w'),
-                        default='./ASSETS.INC')
+                        default='ASSETS.INC')
     parser.add_argument('-a', '--assembly', type=argparse.FileType('w'),
                         default='ASSETS.ASM')
     parser.add_argument('paths', metavar='IMG', type=str,
@@ -67,7 +68,7 @@ def main(args):
 
     print("Using colourmap:", colormap, "\n")
 
-    inc, asm = "", ""
+    inc, asm = "", "INCLUDE \"{}\"".format(args.include.name)
 
     for path in args.paths:
         name, ext = os.path.splitext(os.path.basename(path))
