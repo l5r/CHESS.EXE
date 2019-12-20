@@ -14,6 +14,7 @@ MODEL FLAT, C
 ASSUME cs:_TEXT,ds:FLAT,es:FLAT,fs:FLAT,gs:FLAT
 
 INCLUDE "DRAW.INC"
+INCLUDE "ASSETS.INC"
 
 ; compile-time constants (with macros)
 VMEMADDR EQU 09e560h	; video memory address
@@ -80,6 +81,23 @@ PROC draw_square
 
 	ret
 ENDP draw_square
+
+PROC draw_piece
+
+	ARG @@piece:dword, @@x:dword, @@y:dword
+	USES eax
+
+	mov al, [BYTE PTR @@piece]
+	and al, 0FFh - 080h
+	cmp al, 0
+	jz @@return
+	dec al
+	mov eax, [PIECE_IMG_TABLE + eax * 8]
+
+@@return:
+	ret
+
+ENDP draw_piece
 
 
 PROC draw_board
@@ -187,6 +205,13 @@ ENDP clean_screen
 
 
 DATASEG
+
+PIECE_IMG_TABLE DD	IMG_KING_B_DATA,	IMG_KING_W_DATA,	\
+			IMG_QUEEN_B_DATA,	IMG_QUEEN_W_DATA,	\
+			IMG_TURRET_B_DATA,	IMG_TURRET_W_DATA,	\
+			IMG_HORSE_B_DATA,	IMG_HORSE_W_DATA,	\
+			IMG_BISHOP_B_DATA,	IMG_BISHOP_W_DATA,	\
+			IMG_PAWN_B_DATA,	IMG_PAWN_W_DATA
 
 STACK 100H
 
