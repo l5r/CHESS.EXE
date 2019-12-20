@@ -19,16 +19,19 @@ def convert_img_to_asm(image, name, colormap):
     inc += "IMG_{}_WIDTH EQU {}\n".format(uppername, width)
     inc += "IMG_{}_HEIGHT EQU {}\n".format(uppername, height)
     inc += "IMG_{}_SIZE EQU {}\n".format(uppername, width * height)
-    inc += "GLOBAL IMG_{}_DATA:BYTE:{}".format(uppername, width * height)
+    inc += "GLOBAL IMG_{}_DATA:BYTE".format(uppername, width * height)
     inc += "\n"
 
-    asm += "IMG_{}_DATA\n".format(uppername)
+    asm += "IMG_{}_DATA DB \\\n".format(uppername)
     for y in range(0, height):
-        asm += "\tDB\t"
+        asm += "\t"
         for x in range(0, width):
             asm += "{}, ".format(colormap.get(image[x, y], 0))
         asm = asm[:-2]
-        asm += "\n"
+        asm += ", \\\n"
+
+    asm = asm[:-4]
+    asm += "\n"
 
     return inc, asm
 
@@ -68,13 +71,15 @@ def main(args):
 
     print("Using colourmap:", colormap, "\n")
 
-    inc, asm = "", "INCLUDE \"{}\"".format(args.include.name)
+    inc, asm = "", "IDEAL\nP386\nMODEL FLAT, C\nDATASEG\nINCLUDE \"{}\"\n".format(args.include.name)
 
     for path in args.paths:
         name, ext = os.path.splitext(os.path.basename(path))
         img = Image.open(path)
         inc_, asm_ = convert_img_to_asm(img, name, colormap)
         inc += inc_; asm += asm_
+
+    asm += "\nEND\n"
 
     for text, file in [(asm, args.assembly), (inc, args.include)]:
         file.write(text)

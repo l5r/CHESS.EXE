@@ -1,7 +1,7 @@
 
 ; vim:ft=tasm:tw=8
 
-ENUM piece_color black, white
+ENUM piece_color black = 0, white = 1
 BLACK EQU piece_color black
 WHITE EQU piece_color white
 

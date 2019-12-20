@@ -35,6 +35,7 @@ BOARD piece	<b,R>, <b,N>, <b,B>, <b,Q>, <b,K>, <b,B>, <b,N>, <b,R>, \
 		32 DUP (<>), \
 		<w,R>, <w,N>, <w,B>, <w,Q>, <w,K>, <w,B>, <w,N>, <w,R>, \
 		<w,P>, <w,P>, <w,P>, <w,P>, <w,P>, <w,P>, <w,P>, <w,P> \
+
 ; vim:set noet filetype=tasm:
 
 END
