@@ -145,7 +145,7 @@ PROC draw_board
 ENDP draw_board
 
 PROC highlight_square ;WPO4
-	ARG 	@@x0:dword, @@y0:dword, @@col: dword
+	ARG 	@@x0:dword, @@y0:dword
 	USES 	eax, ecx, edx, edi ; note: MUL uses edx!
 
 	; Compute the index of the rectangle's top left corner

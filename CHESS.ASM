@@ -28,10 +28,48 @@ start:
 	call	video_mode, 13h
 	call	background, 0bh
 	call	draw_board
+	call 	highlight_square(BEGIN_X, BEGIN_Y)
+	; check keystroke
+	mov 	ah,01h
+	int 	16h
+	jz	@@not_pressed_key
 
-	; Wait for keystroke and read character.
-	mov ah,00h
-	int 16h
+@@pressed_key:
+	mov 	ah, 0h
+	cmp 	cx, 2190
+	jz	@@left_key_pressed
+	cmp 	cx, 2191
+	jz 	@@up_key_pressed
+	cmp 	cx, 2192
+	jnz 	@@down_key_pressed
+	mov 	dx, 10h
+
+@@right_key_pressed:
+
+	sub 	[BEGIN_X], dx
+	call 	highlight_square(BEGIN_X, BEGIN_Y)
+	ret
+
+@@left_key_pressed:
+
+	add 	[BEGIN_X], dx
+	call 	highlight_square(BEGIN_X, BEGIN_Y)
+	ret
+
+@@up_key_pressed:
+
+	add	[BEGIN_Y], dx
+	call 	highlight_square(BEGIN_X, BEGIN_Y)
+	ret
+
+@@down_key_pressed:
+	sub 	[BEGIN_Y], dx
+	call 	highlight_square(BEGIN_X, BEGIN_Y)
+	ret
+
+	int 	16h
+
+@@no_pressed_key:
 
 	; Reset video mode for the terminal.
 	call	video_mode, 03h
@@ -44,7 +82,8 @@ start:
 ; DATA
 ; -------------------------------------------------------------------
 DATASEG
-
+BEGIN_X 0h
+BEGIN_Y 0h
 ; -------------------------------------------------------------------
 ; STACK
 ; -------------------------------------------------------------------
