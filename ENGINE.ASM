@@ -9,14 +9,17 @@ CODESEG
 
 PROC do_move
 	ARG 	@@move_from:dword, @@move_to:dword
-	USES 	eax, ebx
+	USES 	eax, ebx, ecx
 
 	mov	eax, [@@move_from]
 	xor	ebx, ebx
 	mov	bl, ah
 	add	ebx, OFFSET BOARD
 	and	eax, 0FFh
+	push	eax
+	push	ebx
 	mov	bl, [ebx + eax*8]
+	push	ebx
 
 	and	ebx, KIND_MASK
 	cmp	ebx, 0h
@@ -27,9 +30,17 @@ PROC do_move
 	cmp	eax, 0h
 	jz	@@return
 
-	mov	eax, [@@move_from]
-	mov	[@@move_to], eax
-	mov	[@@move_from], 0h
+	mov	eax, [@@move_to]
+	xor	ebx, ebx
+	mov	bl, ah
+	add	ebx, OFFSET BOARD
+	and	eax, 0FFh
+	pop	ecx
+	mov	[ebx + eax*8], cl
+
+	pop	ebx
+	pop	eax
+	mov	[BYTE PTR ebx + eax*8], 0h
 
 @@return:
 	ret
