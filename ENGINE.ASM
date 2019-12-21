@@ -64,7 +64,7 @@ PROC is_not_empty
 	ARG	@@tile:dword
 	USES	ebx
 
-	mov	eax, [@@move_to]
+	mov	eax, [@@tile]
 	xor	ebx, ebx
 	mov	bl, ah
 	add	ebx, OFFSET BOARD
