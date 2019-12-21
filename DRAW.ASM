@@ -214,25 +214,47 @@ ENDP draw_board
 
 PROC move_selection
 	ARG	@@dx:dword, @@dy:dword
-	USES	eax
+	USES	eax, ebx, ecx, edx
 
 	cmp	[CURRENT_MODE], mode_from
 	jz	@@mode_from
 
 	mov	eax, [TO_X]
+	mov	ebx, [TO_Y]
+	push	eax
+	push	ebx
+
 	add	eax, [@@dx]
 	mov	[TO_X], eax
-	mov	eax, [TO_Y]
-	add	eax, [@@dy]
-	mov	[TO_Y], eax
-	ret
+	add	ebx, [@@dy]
+	mov	[TO_Y], ebx
+	jmp	@@erease_highlight
+
 @@mode_from:
 	mov	eax, [FROM_X]
+	mov	ebx, [FROM_Y]
+	push	eax
+	push	ebx
+
 	add	eax, [@@dx]
 	mov	[FROM_X], eax
-	mov	eax, [FROM_Y]
-	add	eax, [@@dy]
-	mov	[FROM_Y], eax
+	add	ebx, [@@dy]
+	mov	[FROM_Y], ebx
+
+@@erease_highlight:
+	mov	ebx, [esp]; Y
+	xor	ebx, [esp + 4]; X
+	test	ebx, 010h
+
+	pop	ebx
+	pop	eax
+	jz	@@highlight_white
+
+	call	highlight_square, eax, ebx, 3
+	ret
+
+@@highlight_white:
+	call	highlight_square, eax, ebx, 4
 	ret
 
 ENDP move_selection
@@ -372,13 +394,13 @@ PIECE_IMG_TABLE DD	IMG_KING_B_DATA,	IMG_KING_W_DATA,	\
 			IMG_BISHOP_B_DATA,	IMG_BISHOP_W_DATA,	\
 			IMG_PAWN_B_DATA,	IMG_PAWN_W_DATA
 
-PALLETTE DB	004h, 004h, 008h, \ ; Background
+PALLETTE DB	000h, 033h/4, 099h/4, \ ; Background
 		008h, 008h, 008h, \ ; Piece black
 		030h, 030h, 030h, \ ; Piece white
 		00Fh, 00Fh, 00Fh, \ ; Tile black
 		02Ah, 02Ah, 02Ah, \ ; Tile white
-		008h, 004h, 004h, \ ; From highlight
-		004h, 004h, 008h  \ ; To highlight
+		0FFh/4, 066h/4, 000h, \ ; From highlight
+		0FFh/4, 066h/4, 000h  \ ; To highlight
 
 PALLETTE_SIZE = $ - PALLETTE
 
