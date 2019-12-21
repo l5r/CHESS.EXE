@@ -72,16 +72,16 @@ start:
 	jmp	@@read_key
 
 @@left_key_pressed:
-	call	move_selection, -10h, 0h
+	call	move_selection, -01h, 0h
 	jmp	@@end_pressed_key
 @@right_key_pressed:
-	call	move_selection, 10h, 0h
+	call	move_selection, 01h, 0h
 	jmp	@@end_pressed_key
 @@up_key_pressed:
-	call	move_selection, 0h, -10h
+	call	move_selection, 0h, -01h
 	jmp	@@end_pressed_key
 @@down_key_pressed:
-	call	move_selection, 0h, 10h
+	call	move_selection, 0h, 01h
 	jmp	@@end_pressed_key
 
 @@select_key_pressed:

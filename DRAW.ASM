@@ -19,7 +19,7 @@ INCLUDE "ASSETS.INC"
 
 ; compile-time constants (with macros)
 VMEMADDR EQU 0A0000h		; video memory address
-SCR_WIDTH EQU 320		; screen witdth
+SCR_WIDTH EQU 320		; screen width
 SCR_HEIGHT EQU 200		; screen height
 SQUARE_SIZE EQU 16
 PX_UNSET EQU 0DEADBEEFh
@@ -228,7 +228,7 @@ PROC move_selection
 	mov	[TO_X], eax
 	add	ebx, [@@dy]
 	mov	[TO_Y], ebx
-	jmp	@@erease_highlight
+	jmp	@@erase_highlight
 
 @@mode_from:
 	mov	eax, [FROM_X]
@@ -241,10 +241,10 @@ PROC move_selection
 	add	ebx, [@@dy]
 	mov	[FROM_Y], ebx
 
-@@erease_highlight:
+@@erase_highlight:
 	mov	ebx, [esp]; Y
 	xor	ebx, [esp + 4]; X
-	test	ebx, 010h
+	test	ebx, 01h
 
 	pop	ebx
 	pop	eax
@@ -260,10 +260,10 @@ PROC move_selection
 ENDP move_selection
 
 ; Moves to the next state of selection. If a move is finalised, ecx is set
-; to a nonzero value, and eax and ebx contain the from amd to positions in 
+; to a nonzero value, and eax and ebx contain the from amd to positions in
 ; STRUC position format, as opposed to pixel format.
 PROC set_selection
-	
+
 	cmp	[CURRENT_MODE], mode_to
 	jz	@@finalize_move
 
@@ -276,16 +276,13 @@ PROC set_selection
 	ret
 
 @@finalize_move:
-	
+
 	mov	eax, [FROM_Y]
-	shr	eax, 4
 	mov	ebx, [FROM_X]
-	shr	ebx, 4
 	mov	ah, bl
+
 	mov	ebx, [TO_Y]
-	shr	ebx, 4
 	mov	ecx, [TO_X]
-	shr	ecx, 4
 	mov	bh, cl
 
 	mov	ecx, 1h
@@ -327,13 +324,18 @@ ENDP reset_highlight
 
 PROC highlight_square ;WPO4
 	ARG 	@@x0:dword, @@y0:dword, @@color:dword
-	USES 	eax, ecx, edx, edi ; note: MUL uses edx!
+	USES 	eax, ebx, ecx, edx, edi ; note: MUL uses edx!
 
 	; Compute the index of the rectangle's top left corner
 	mov	eax, [@@y0]
+	shl	eax, 4
+
 	mov	edx, SCR_WIDTH
-	mul	edx
-	add	eax, [@@x0]
+	mul	edx		; move to row
+
+	mov	ebx, [@@x0]
+	shl 	ebx, 4
+	add	eax, ebx 	; move to column
 
 	; Compute top left corner address
 	mov edi, VMEMADDR
