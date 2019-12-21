@@ -162,6 +162,7 @@ PROC validate_knight
 @@not_ok:
  	xor 	eax, eax
 	ret
+ENDP validate_knight
 
 PROC validate_bishop
 	ARG 	@@move_from:dword, @@move_to:dword
