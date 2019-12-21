@@ -82,7 +82,6 @@ start:
 	jmp	@@end_pressed_key
 
 @@end_pressed_key:
-	call	draw_board
 	call 	highlight_square, [BEGIN_X], [BEGIN_Y]
 	jmp	@@read_key
 

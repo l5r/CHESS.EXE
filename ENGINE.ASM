@@ -133,9 +133,6 @@ PROC validate_knight
 	cmp 	ah, bh ; x == x
 	jz 	@@not_ok
 
-	ENDP validate_knight
-	jz 	@@not_ok
-
 	sub 	bl, al
 	cmp 	bl, 0
 	jg 	@@validate

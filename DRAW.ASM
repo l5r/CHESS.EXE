@@ -46,7 +46,7 @@ PROC load_palette
 	mov	dx, 03C8h
 	mov	al, 0h
 	out	dx, al
-	
+
 	mov	dx, 03C9h
 	mov	esi, offset PALLETTE
 	mov	ecx, PALLETTE_SIZE
@@ -133,7 +133,7 @@ PROC draw_piece
 
 	xor	ecx, ecx
 @@loop_x:
-	
+
 	mov	dl, [ebx]
 	;mov	dl, 6
 	cmp	dl, 0
@@ -208,6 +208,8 @@ PROC draw_board
 	ret
 ENDP draw_board
 
+PROC higlight_selection
+	ARG 	
 PROC highlight_square ;WPO4
 	ARG 	@@x0:dword, @@y0:dword
 	USES 	eax, ecx, edx, edi ; note: MUL uses edx!
@@ -290,4 +292,3 @@ STACK 100H
 END
 
 ; vim:set noet filetype=tasm:
-
