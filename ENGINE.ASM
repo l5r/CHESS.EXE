@@ -9,9 +9,12 @@ CODESEG
 
 PROC do_move
 	ARG 	@@move_from:dword, @@move_to:dword
-	USES 	eax, ebx, ecx
+	USES 	ebx, ecx, edx
 
 	mov	eax, [@@move_from]
+	cmp	[@@move_to], eax
+	jz	@@return_fail
+
 	xor	ebx, ebx
 	mov	bl, ah
 	add	ebx, OFFSET BOARD
@@ -21,9 +24,17 @@ PROC do_move
 	mov	bl, [ebx + eax*8]
 	push	ebx
 
-	and	ebx, KIND_MASK
-	cmp	ebx, 0h
-	jz	@@return ; Don't move empty pieces
+	; Don't take a piece of the same color
+	mov	bl, dl
+	xor	bl, cl
+	test	bl, COLOR_MASK
+	jz	@@return_fail
+	
+	; Don't move empty pieces
+	mov	bl, cl
+	test	ebx, KIND_MASK
+	jz	@@return_fail 
+
 	mov	eax, [MOVE_VALIDATION_TABLE + ebx * 4]
 	call	eax, [@@move_from], [@@move_to]
 
@@ -41,10 +52,27 @@ PROC do_move
 	pop	ebx
 	pop	eax
 	mov	[BYTE PTR ebx + eax*8], 0h
+	jmp	@@return
 
+@@return_fail:
+	xor	eax, eax
 @@return:
 	ret
 ENDP do_move
+
+PROC is_not_empty
+	ARG	@@tile:dword
+	USES	ebx
+
+	mov	eax, [@@move_to]
+	xor	ebx, ebx
+	mov	bl, ah
+	add	ebx, OFFSET BOARD
+	and	eax, 0FFh
+	mov	al, [ebx + eax*8]
+	and	al, KIND_MASK
+	ret
+ENDP
 
 PROC always_ok
 	ARG 	@@move_from:dword, @@move_to:dword
