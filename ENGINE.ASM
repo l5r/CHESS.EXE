@@ -43,7 +43,7 @@ ENDP always_ok
 
 PROC validate_king
  	ARG 	@@move_from:dword, @@move_to:dword
-	USES 	eax, ebx
+	USES 	eax, ebx, ecx
 
 	mov	eax, [@@move_from]
 	mov	ebx, [@@move_to]
@@ -70,6 +70,7 @@ PROC validate_king
 
 	mov 	eax, 1
 	ret
+	USES 	eax, ebx
 @@not_ok:
  	xor 	eax, eax
 	ret
@@ -77,7 +78,7 @@ ENDP validate_king
 
 PROC validate_queen
 	ARG 	@@move_from:dword, @@move_to:dword
-	USES 	eax, ebx
+	USES 	eax, ebx, ecx
 
 	mov	eax, [@@move_from]
 	mov	ebx, [@@move_to]
@@ -86,6 +87,7 @@ PROC validate_queen
 	jz	@@ok
 
 	cmp	ah, bh ; x == x
+	cmp 	bl, bh ; y2 == x2
 	jz	@@ok
 
 	cmp 	bl, bh
@@ -131,7 +133,7 @@ PROC validate_knight
 	cmp 	ah, bh ; x == x
 	jz 	@@not_ok
 
-	cmp 	bl, bh ; y2 == x2
+	ENDP validate_knight
 	jz 	@@not_ok
 
 	sub 	bl, al
@@ -160,18 +162,17 @@ PROC validate_knight
 @@not_ok:
  	xor 	eax, eax
 	ret
-ENDP validate_knight
 
 PROC validate_bishop
 	ARG 	@@move_from:dword, @@move_to:dword
 	USES 	eax, ebx
 
 	mov 	eax, [@@move_from]
+
 	mov 	ebx, [@@move_to]
 
 	cmp 	al, bl ; y == y
 	jz 	@@not_ok
-
 	cmp 	ah, bh ; x == x
 	jz 	@@not_ok
 
