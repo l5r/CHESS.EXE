@@ -9,33 +9,43 @@ CODESEG
 
 PROC do_move
 	ARG 	@@move_from:dword, @@move_to:dword
-	USES 	eax, ebx, ecx
+	USES 	eax, ebx, ecx, edx
+	LOCAL	@@piece_from:BYTE, @@piece_to:BYTE
 
 	mov	eax, [@@move_from]
 	xor	ebx, ebx
 	mov	bl, ah
 	add	ebx, OFFSET BOARD
 	and	eax, 0FFh
+	; Store these to write to later
 	push	eax
 	push	ebx
-	mov	bl, [ebx + eax*8]
-	push	ebx
-
-	and	ebx, KIND_MASK
-	cmp	ebx, 0h
-	jz	@@return ; Don't move empty pieces
-	mov	eax, [MOVE_VALIDATION_TABLE + ebx * 4]
-	call	eax, [@@move_from], [@@move_to]
-
-	cmp	eax, 0h
-	jz	@@return
+	xor	ecx, ecx
+	mov	cl, [ebx + eax*8]
 
 	mov	eax, [@@move_to]
 	xor	ebx, ebx
 	mov	bl, ah
 	add	ebx, OFFSET BOARD
 	and	eax, 0FFh
-	pop	ecx
+	; Store these to write to later
+	push	eax
+	push	ebx
+	xor	edx, edx
+	mov	dl, [ebx + eax*8]
+
+	mov	bl, cl
+	and	ebx, KIND_MASK
+	cmp	ebx, 0h
+	jz	@@return ; Don't move empty pieces
+	mov	eax, [MOVE_VALIDATION_TABLE + ebx * 4]
+	call	eax, [@@move_from], [@@move_to], ecx, edx
+
+	cmp	eax, 0h
+	jz	@@return
+
+	pop	ebx
+	pop	eax
 	mov	[ebx + eax*8], cl
 
 	pop	ebx
@@ -47,14 +57,14 @@ PROC do_move
 ENDP do_move
 
 PROC always_ok
-	ARG 	@@move_from:dword, @@move_to:dword
+	ARG 	@@move_from:dword, @@move_to:dword, @@piece_from:dword, @@piece_to:dword
 	mov	eax, 1
 	ret
 ENDP always_ok
 
 PROC validate_king
- 	ARG 	@@move_from:dword, @@move_to:dword
-	USES 	eax, ebx, ecx
+	ARG 	@@move_from:dword, @@move_to:dword, @@piece_from:dword, @@piece_to:dword
+	USES 	ebx, ecx
 
 	mov	eax, [@@move_from]
 	mov	ebx, [@@move_to]
@@ -88,8 +98,8 @@ PROC validate_king
 ENDP validate_king
 
 PROC validate_queen
-	ARG 	@@move_from:dword, @@move_to:dword
-	USES 	eax, ebx, ecx
+	ARG 	@@move_from:dword, @@move_to:dword, @@piece_from:dword, @@piece_to:dword
+	USES 	ebx, ecx
 
 	mov	eax, [@@move_from]
 	mov	ebx, [@@move_to]
@@ -112,8 +122,8 @@ PROC validate_queen
 ENDP validate_queen
 
 PROC validate_rook
-	ARG 	@@move_from:dword, @@move_to:dword
-	USES 	eax, ebx
+	ARG 	@@move_from:dword, @@move_to:dword, @@piece_from:dword, @@piece_to:dword
+	USES 	ebx
 
 	mov	eax, [@@move_from]
 	mov	ebx, [@@move_to]
@@ -132,8 +142,8 @@ PROC validate_rook
 ENDP validate_rook
 
 PROC validate_knight
-	ARG 	@@move_from:dword, @@move_to:dword
-	USES 	eax, ebx, ecx
+	ARG 	@@move_from:dword, @@move_to:dword, @@piece_from:dword, @@piece_to:dword
+	USES 	ebx, ecx
 
 	mov 	eax, [@@move_from]
 	mov 	ebx, [@@move_to]
@@ -173,8 +183,8 @@ PROC validate_knight
 ENDP validate_knight
 
 PROC validate_bishop
-	ARG 	@@move_from:dword, @@move_to:dword
-	USES 	eax, ebx
+	ARG 	@@move_from:dword, @@move_to:dword, @@piece_from:dword, @@piece_to:dword
+	USES 	ebx
 
 	mov 	eax, [@@move_from]
 
@@ -196,8 +206,8 @@ PROC validate_bishop
 ENDP validate_bishop
 
 PROC validate_pawn
-	ARG 	@@move_from:dword, @@move_to:dword
-	USES 	eax, ebx, ecx
+	ARG 	@@move_from:dword, @@move_to:dword, @@piece_from:dword, @@piece_to:dword
+	USES 	ebx, ecx
 
 	mov 	eax, [@@move_from]
 	mov 	ebx, [@@move_to]
