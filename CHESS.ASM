@@ -94,7 +94,7 @@ start:
 	call	video_mode, 03h
 
 	; Terminate process with return code in response to a keystroke.
-	mov		ax,4C00h
+	mov	ax,4C00h
 	int 	21h
 
 ; -------------------------------------------------------------------
@@ -103,7 +103,7 @@ start:
 DATASEG
 BEGIN_X DD 0h
 BEGIN_Y DD 0h
-TO_COLOR DD 3h
+TO_COLOR DD 03h
 FROM_COLOR DD 0ah
 STANDARD DD 8h
 ; -------------------------------------------------------------------

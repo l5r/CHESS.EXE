@@ -208,12 +208,19 @@ PROC draw_board
 	ret
 ENDP draw_board
 
-PROC highlight_all
-	ARG 	@@from:dword, @@to:dword
-	USES 	eax, ebx
+PROC higlight_squares
+	ARG  @@color:dword
+	USES eax, ebx, esi, edi
 
-ENDP highlight_all
-
+	lea si, [TO_ARRAY]
+	mov ecx, LEN_ARRAY - 1
+@@iterate:
+	lea di, [TO_ARRAY + 4]
+	mov ax, [si]
+	mov bx, [di]
+	call highlight_square, ax, bx, [TO_COLOR]
+	loop @@iterate
+ENDP higlight_squares
 
 PROC highlight_square ;WPO4
 	ARG 	@@x0:dword, @@y0:dword, @@color:dword
@@ -291,6 +298,12 @@ PALLETTE DB	004h, 004h, 008h, \ ; Background
 		02Ah, 02Ah, 02Ah, \  ; Tile white
 
 PALLETTE_SIZE = $ - PALLETTE
+
+TO_COLOR DD 03h
+
+TO_ARRAY DD 100h dup(?)
+LEN_ARRAY = $-TO_ARRAY
+
 
 STACK 100H
 
