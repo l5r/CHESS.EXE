@@ -33,7 +33,7 @@ start:
 	call	load_palette
 	call	background, 00h
 	call	draw_board
-	call 	highlight_square, [BEGIN_X], [BEGIN_Y]
+	call 	highlight_square, [BEGIN_X], [BEGIN_Y], [FROM_COLOR]
 
 @@read_key:
 	; check keystroke
@@ -69,20 +69,24 @@ start:
 	jmp	@@read_key
 
 @@left_key_pressed:
+	call 	highlight_square, [BEGIN_X], [BEGIN_Y], [STANDARD]
 	sub 	[BEGIN_X], edx
 	jmp	@@end_pressed_key
 @@right_key_pressed:
+	call 	highlight_square, [BEGIN_X], [BEGIN_Y], [STANDARD]
 	add 	[BEGIN_X], edx
 	jmp	@@end_pressed_key
 @@up_key_pressed:
+	call 	highlight_square, [BEGIN_X], [BEGIN_Y], [STANDARD]
 	sub	[BEGIN_Y], edx
 	jmp	@@end_pressed_key
 @@down_key_pressed:
+	call 	highlight_square, [BEGIN_X], [BEGIN_Y], [STANDARD]
 	add 	[BEGIN_Y], edx
 	jmp	@@end_pressed_key
 
 @@end_pressed_key:
-	call 	highlight_square, [BEGIN_X], [BEGIN_Y]
+	call 	highlight_square, [BEGIN_X], [BEGIN_Y], [FROM_COLOR]
 	jmp	@@read_key
 
 @@quit:
@@ -99,6 +103,9 @@ start:
 DATASEG
 BEGIN_X DD 0h
 BEGIN_Y DD 0h
+TO_COLOR DD 3h
+FROM_COLOR DD 0ah
+STANDARD DD 8h
 ; -------------------------------------------------------------------
 ; STACK
 ; -------------------------------------------------------------------

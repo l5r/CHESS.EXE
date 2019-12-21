@@ -208,10 +208,15 @@ PROC draw_board
 	ret
 ENDP draw_board
 
-PROC higlight_selection
-	ARG 	
+PROC highlight_all
+	ARG 	@@from:dword, @@to:dword
+	USES 	eax, ebx
+
+ENDP highlight_all
+
+
 PROC highlight_square ;WPO4
-	ARG 	@@x0:dword, @@y0:dword
+	ARG 	@@x0:dword, @@y0:dword, @@color:dword
 	USES 	eax, ecx, edx, edi ; note: MUL uses edx!
 
 	; Compute the index of the rectangle's top left corner
@@ -227,7 +232,7 @@ PROC highlight_square ;WPO4
 	; Plot the top horizontal edge.
 	mov	edx, SQUARE_SIZE	; store width in edx for later reuse
 	mov	ecx, edx
-	mov	al, 0h
+	mov	al, [BYTE PTR @@color]
 	rep stosb
 	sub	edi, edx		; reset edi to left-top corner
 
@@ -283,7 +288,7 @@ PALLETTE DB	004h, 004h, 008h, \ ; Background
 		008h, 008h, 008h, \ ; Piece black
 		030h, 030h, 030h, \ ; Piece white
 		00Fh, 00Fh, 00Fh, \ ; Tile black
-		02Ah, 02Ah, 02Ah, \ ; Tile white
+		02Ah, 02Ah, 02Ah, \  ; Tile white
 
 PALLETTE_SIZE = $ - PALLETTE
 
