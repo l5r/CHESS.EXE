@@ -22,6 +22,10 @@ VMEMADDR EQU 0A0000h		; video memory address
 SCR_WIDTH EQU 320		; screen witdth
 SCR_HEIGHT EQU 200		; screen height
 SQUARE_SIZE EQU 16
+PX_UNSET EQU 0DEADBEEFh
+
+ENUM selection_mode mode_from, mode_to
+
 ; -------------------------------------------------------------------
 ; CODE
 ; -------------------------------------------------------------------
@@ -208,9 +212,67 @@ PROC draw_board
 	ret
 ENDP draw_board
 
-PROC higlight_squares
-	ARG  @@color:dword
-	USES eax, ebx, esi, edi
+PROC move_selection
+	ARG	@@dx:dword, @@dy:dword
+	USES	eax
+
+	cmp	[CURRENT_MODE], mode_from
+	jz	@@mode_from
+
+	mov	eax, [TO_X]
+	add	eax, [@@dx]
+	mov	[TO_X], eax
+	mov	eax, [TO_Y]
+	add	eax, [@@dy]
+	mov	[TO_Y], eax
+	ret
+@@mode_from:
+	mov	eax, [FROM_X]
+	add	eax, [@@dx]
+	mov	[FROM_X], eax
+	mov	eax, [FROM_Y]
+	add	eax, [@@dy]
+	mov	[FROM_Y], eax
+	ret
+
+ENDP move_selection
+
+; Moves to the next state of selection. If a move is finalised, ecx is set
+; to a nonzero value, and eax and ebx contain the from amd to positions in 
+; STRUC position format, as opposed to pixel format.
+PROC set_selection
+	
+	cmp	[CURRENT_MODE], mode_to
+	jz	@@finalize_move
+
+	mov	[CURRENT_MODE], mode_to
+	mov	eax, [FROM_X]
+	mov	[TO_X], eax
+	mov	eax, [FROM_Y]
+	mov	[TO_Y], eax
+	xor	ecx, ecx
+	ret
+
+@@finalize_move:
+	
+	mov	eax, [FROM_Y]
+	shr	eax, 4
+	mov	ebx, [FROM_X]
+	shr	ebx, 4
+	mov	ah, bl
+	mov	ebx, [TO_Y]
+	shr	ebx, 4
+	mov	ecx, [TO_X]
+	shr	ecx, 4
+	mov	bh, cl
+
+	mov	ecx, 1h
+
+	ret
+ENDP set_selection
+
+PROC highlight_all
+	USES 	eax, ebx, ecx, esi, edi
 
 	lea si, [TO_ARRAY]
 	mov ecx, LEN_ARRAY - 1
@@ -218,9 +280,28 @@ PROC higlight_squares
 	lea di, [TO_ARRAY + 4]
 	mov ax, [si]
 	mov bx, [di]
-	call highlight_square, ax, bx, [TO_COLOR]
+	call highlight_square, ax, bx, 06h
 	loop @@iterate
-ENDP higlight_squares
+
+	call	highlight_square, [FROM_X], [FROM_Y], 05h
+	cmp	[TO_X], PX_UNSET
+	jz	@@return
+	call	highlight_square, [TO_X], [TO_Y], 06h
+
+@@return:
+	ret
+
+ENDP highlight_all
+
+PROC reset_highlight
+
+	mov	[CURRENT_MODE], mode_from
+	mov	[FROM_X], 0
+	mov	[FROM_Y], 0
+	mov	[TO_X], PX_UNSET
+	mov	[TO_Y], PX_UNSET
+	ret
+ENDP reset_highlight
 
 PROC highlight_square ;WPO4
 	ARG 	@@x0:dword, @@y0:dword, @@color:dword
@@ -295,15 +376,20 @@ PALLETTE DB	004h, 004h, 008h, \ ; Background
 		008h, 008h, 008h, \ ; Piece black
 		030h, 030h, 030h, \ ; Piece white
 		00Fh, 00Fh, 00Fh, \ ; Tile black
-		02Ah, 02Ah, 02Ah, \  ; Tile white
+		02Ah, 02Ah, 02Ah, \ ; Tile white
+		008h, 004h, 004h, \ ; From highlight
+		004h, 004h, 008h  \ ; To highlight
 
 PALLETTE_SIZE = $ - PALLETTE
-
-TO_COLOR DD 03h
 
 TO_ARRAY DD 100h dup(?)
 LEN_ARRAY = $-TO_ARRAY
 
+FROM_X DD 0
+FROM_Y DD 0
+TO_X DD PX_UNSET
+TO_Y DD PX_UNSET
+CURRENT_MODE selection_mode mode_from
 
 STACK 100H
 

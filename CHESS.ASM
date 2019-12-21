@@ -33,7 +33,7 @@ start:
 	call	load_palette
 	call	background, 00h
 	call	draw_board
-	call 	highlight_square, [BEGIN_X], [BEGIN_Y], [FROM_COLOR]
+	call 	highlight_all
 
 @@read_key:
 	; check keystroke
@@ -63,30 +63,39 @@ start:
 	jz	@@up_key_pressed
 	cmp 	ah, 024h ; J
 	jz 	@@down_key_pressed
-	cmp	ah, 081h ; ESC
+	cmp	ah, 01Ch ; Enter
+	jz	@@select_key_pressed
+	cmp	ah, 039h ; Space
+	jz	@@select_key_pressed
+	cmp	ah, 001h ; ESC
 	jz	@@quit
-	jmp	@@quit
 	jmp	@@read_key
 
 @@left_key_pressed:
-	call 	highlight_square, [BEGIN_X], [BEGIN_Y], [STANDARD]
-	sub 	[BEGIN_X], edx
+	call	move_selection, -10h, 0h
 	jmp	@@end_pressed_key
 @@right_key_pressed:
-	call 	highlight_square, [BEGIN_X], [BEGIN_Y], [STANDARD]
-	add 	[BEGIN_X], edx
+	call	move_selection, 10h, 0h
 	jmp	@@end_pressed_key
 @@up_key_pressed:
-	call 	highlight_square, [BEGIN_X], [BEGIN_Y], [STANDARD]
-	sub	[BEGIN_Y], edx
+	call	move_selection, 0h, -10h
 	jmp	@@end_pressed_key
 @@down_key_pressed:
-	call 	highlight_square, [BEGIN_X], [BEGIN_Y], [STANDARD]
-	add 	[BEGIN_Y], edx
+	call	move_selection, 0h, 10h
 	jmp	@@end_pressed_key
 
+@@select_key_pressed:
+
+	call	set_selection
+	cmp	ecx, 0h
+	jz	@@end_pressed_key
+	call	do_move, eax, ebx
+	call	draw_board
+	call	reset_highlight
+
+
 @@end_pressed_key:
-	call 	highlight_square, [BEGIN_X], [BEGIN_Y], [FROM_COLOR]
+	call 	highlight_all
 	jmp	@@read_key
 
 @@quit:
@@ -101,11 +110,7 @@ start:
 ; DATA
 ; -------------------------------------------------------------------
 DATASEG
-BEGIN_X DD 0h
-BEGIN_Y DD 0h
-TO_COLOR DD 03h
-FROM_COLOR DD 0ah
-STANDARD DD 8h
+
 ; -------------------------------------------------------------------
 ; STACK
 ; -------------------------------------------------------------------
