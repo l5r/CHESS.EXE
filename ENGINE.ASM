@@ -115,19 +115,32 @@ PROC validate_king
 	mov	ecx, [@@move_from]
 	mov	ebx, [@@move_to]
 
+
+	mov 	al, bl
+	sub 	al, cl
+	cmp 	al, 1
+	je 	@@check_x
+	cmp 	al, 0
+	je 	@@check_x
+	cmp 	al, -1
+	je 	@@check_x
+
+	xor 	eax, eax
+	ret
+@@check_x:
 	mov 	ah, bh
 	sub 	ah, ch
-	shl 	ah, 1
 	cmp 	ah, 1
-	jne 	@@not_ok
+	je 	@@ok
+	cmp 	ah, 0
+	je 	@@ok
+	cmp 	ah, -1
+	je 	@@ok
 
-@@last_check:
-	call	is_not_empty, ebx
-	cmp 	eax, 1
-	jne 	@@not_ok
+	xor 	eax, eax
 	ret
-@@not_ok:
- 	xor 	eax, eax
+@@ok:
+	mov 	eax, 1
 	ret
 ENDP validate_king
 
@@ -166,28 +179,47 @@ PROC validate_queen
 	mov 	dh, 1
 @@validate:
 	cmp	cl, bl ; y == y
-	jz	@@iterate
+	jz	@@iterate_x
 
 	cmp	ch, bh ; x == x
-	jz 	@@iterate
+	jz 	@@iterate_y
 
-	cmp 	bl, bh ; y2 == x2
-	jz	@@iterate
+	mov 	ah, bh
+	sub 	ah, ch
+	mov 	al, bl
+	sub 	al, cl
+	cmp 	ah, al
+	jz 	@@iterate
+	not 	al
+	inc 	al
+	cmp 	ah, al
+	jz 	@@iterate
 
 	jmp 	@@not_ok
 @@iterate:
 	cmp 	cl, bl
-	jmp 	@@last_check
+	je 	@@finish
 	add 	ch, dh
 	add 	cl, dl
 	call 	is_not_empty, ecx
-	cmp	ecx, 0
-	je 	@@iterate
+	jnz 	@@iterate		;veranderen
 	jmp 	@@not_ok
-@@last_check:
-	call 	is_not_empty, ebx
-	cmp 	eax, 1
-	jne 	@@not_ok
+@@iterate_x:
+	cmp 	ch, bh
+	jmp 	@@finish
+	add 	ch, dh
+	call 	is_not_empty, ecx
+	jnz	@@iterate_x
+	jmp 	@@not_ok
+@@iterate_y:
+	cmp 	cl, bl
+	jmp 	@@finish
+	add 	cl, dl
+	call 	is_not_empty, ecx
+	jnz	@@iterate_y
+	jmp 	@@not_ok
+@@finish:
+	mov 	eax, 1
 	ret
 @@not_ok:
  	xor 	eax, eax
@@ -272,45 +304,39 @@ PROC validate_knight
 
 	mov 	ah, bh
 	sub 	ah, ch
-	shl 	ah, 1
-
-	cmp 	ah, 4
-	jg 	@@not_ok
+	cmp 	ah, 1
+	je 	@@validate1
+	cmp 	ah, -1
+	je	@@validate1
 
 	mov 	al, bl
 	sub 	al, cl
-	shl 	al, 1
+	cmp 	al, 1
+	je 	@@validate2
+	cmp 	al, -1
+	je	@@validate2
 
-	cmp 	al, 4
-	jle 	@@validate2
 	jmp 	@@not_ok
 
-;first we check whether our x difference is 1 or 2
 @@validate1:
-	cmp 	ah, 1
-	je	@@validate3
-	cmp 	al, 1
-	je 	@@last_check
-	jmp 	@@not_ok
-@@validate3:
-	cmp 	al, 4
-	je 	@@last_check
-	jmp 	@@not_ok
+	mov 	al, bl
+	sub 	al, cl
+	cmp 	al, 2
+	je 	@@finish
+	cmp 	al, -2
+	je 	@@finish
 
-;then we check whether our y difference is 1 or 2
+	jmp 	@@not_ok
 @@validate2:
-	cmp 	al, 1
-	je	@@validate4
-	cmp 	ah, 1
-	je 	@@last_check
+	mov 	ah, bh
+	sub 	ah, ch
+	cmp 	ah, 2
+	je 	@@finish
+	cmp 	ah, -2
+	je 	@@finish
+
 	jmp 	@@not_ok
-@@validate4:
-	cmp 	ah, 4
-	je 	@@last_check
-	jmp 	@@not_ok
-@@last_check:
-	call 	is_not_empty, ebx
-	jz	@@not_ok
+@@finish:
 	mov 	eax, 1
 	ret
 @@not_ok:
@@ -356,6 +382,19 @@ PROC validate_bishop ;KAN NIET 2 naar links
 	je 	@@not_ok
 	cmp 	bh, ch; x2 == x1
 	je 	@@not_ok
+
+	mov 	ah, bh
+	sub 	ah, ch
+	mov 	al, bl
+	sub 	al, cl
+	cmp 	ah, al
+	jz 	@@iterate
+	not 	al
+	inc 	al
+	cmp 	ah, al
+	jz 	@@iterate
+
+	jmp 	@@not_ok
 @@iterate:
 	cmp 	cl, bl
 	je 	@@finish
@@ -389,7 +428,7 @@ PROC validate_pawn
 	sub	bx, dx
 	mov	dx, bx
 @@normalisation_done:
-	
+
 	sub	ch, dh; xfrom - xto
 	jnz	@@diagonal_move
 
@@ -416,7 +455,7 @@ PROC validate_pawn
 	; Diagonal move is only allowed when taking a piece.
 	test	[@@piece_to], KIND_MASK
 	jz	@@not_ok
-	
+
 	; abs(ch)
 	; https://stackoverflow.com/questions/2639173/x86-assembly-abs-implementation#14194764
 	mov	al, ch
@@ -433,7 +472,7 @@ PROC validate_pawn
 	cmp	cl, -1
 	jz	@@ok
 	jmp	@@not_ok
-	
+
 @@ok:
 	mov 	eax, 1
 	ret
