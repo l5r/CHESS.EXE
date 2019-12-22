@@ -219,29 +219,37 @@ PROC move_selection
 	cmp	[CURRENT_MODE], mode_from
 	jz	@@mode_from
 
-	mov	eax, [TO_X]
-	mov	ebx, [TO_Y]
-	push	eax
-	push	ebx
-
-	add	eax, [@@dx]
-	mov	[TO_X], eax
-	add	ebx, [@@dy]
-	mov	[TO_Y], ebx
-	jmp	@@erase_highlight
+	mov	ecx, OFFSET TO_X
+	mov	edx, OFFSET TO_Y
+	jmp	@@continue
 
 @@mode_from:
-	mov	eax, [FROM_X]
-	mov	ebx, [FROM_Y]
+	mov	ecx, OFFSET FROM_X
+	mov	edx, OFFSET FROM_Y
+
+@@continue:
+
+	mov	eax, [ecx]
+	mov	ebx, [edx]
+
 	push	eax
 	push	ebx
 
 	add	eax, [@@dx]
-	mov	[FROM_X], eax
-	add	ebx, [@@dy]
-	mov	[FROM_Y], ebx
+	cmp	eax, 0
+	jl	@@return
+	cmp	eax, 7
+	jg	@@return
+	mov	[ecx], eax
 
-@@erase_highlight:
+	add	ebx, [@@dy]
+	cmp	ebx, 0
+	jl	@@return
+	cmp	ebx, 7
+	jg	@@return
+	mov	[edx], ebx
+
+	; Erease the highlight on the previous square
 	mov	ebx, [esp]; Y
 	xor	ebx, [esp + 4]; X
 	test	ebx, 01h
@@ -255,6 +263,10 @@ PROC move_selection
 
 @@highlight_white:
 	call	highlight_square, eax, ebx, 4
+	ret
+
+@@return:
+	sub	esp, 8
 	ret
 
 ENDP move_selection
