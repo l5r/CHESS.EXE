@@ -512,7 +512,7 @@ BOARD piece	<b,R>, <b,N>, <b,B>, <b,Q>, <b,K>, <b,B>, <b,N>, <b,R>, \
 		<b,P>, <b,P>, <b,P>, <b,P>, <b,P>, <b,P>, <b,P>, <b,P>, \
 		32 DUP (<>), \
 		<w,P>, <w,P>, <w,P>, <w,P>, <w,P>, <w,P>, <w,P>, <w,P>, \
-		<w,R>, <w,N>, <w,B>, <w,K>, <w,Q>, <w,B>, <w,N>, <w,R>
+		<w,R>, <w,N>, <w,B>, <w,Q>, <w,K>, <w,B>, <w,N>, <w,R>
 
 ; vim:set noet filetype=tasm:
 
