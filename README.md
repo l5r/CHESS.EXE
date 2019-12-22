@@ -1,4 +1,22 @@
-Introducite
+---
+title: CHESS.EXE
+subtitle: Schaken in 32-bit assembly.
+author: 
+- Lender Lismond
+- Vincent Mostert
+date: 2019-12-22
+lang: nl
+
+classoption:
+- twoside
+papersize:  a4
+toc: yes
+toc-depth: 2
+
+# vim:fo=1nt:tw=80
+---
+
+Introductie
 ========================
 
 Dit project simuleert een virttueel schaakbord, met een validatie van de basisregels. 
@@ -23,19 +41,25 @@ sluiten.
 
 Dit stelt een schaakstuk op het bord voor, en is een byte groot:
 
-+-------|---------|--------------------+
++-------+---------+--------------------+
 |  Naam | Grootte | Waarde             |
-+======:|=========|====================+
++======:+=========+====================+
 | Color | 1       | 0 = zwart, 1 = wit |
-+-------|---------|--------------------+
++-------+---------+--------------------+
 |  Kind | 7       | 0 = leeg,          |
+|       |         |                    |
 |       |         | 1 = koning,        |
+|       |         |                    |
 |       |         | 2 = koningin,      |
+|       |         |                    |
 |       |         | 3 = toren,         |
+|       |         |                    |
 |       |         | 4 = paard,         |
+|       |         |                    |
 |       |         | 5 = loper,         |
+|       |         |                    |
 |       |         | 6 = pion           |
-+-------|---------|--------------------+
++-------+---------+--------------------+
 
 Een leeg schaakstuk kan eenderwelke kleur hebben.
 
@@ -43,13 +67,13 @@ Een leeg schaakstuk kan eenderwelke kleur hebben.
 
 Dit stelt een positie op het schaakbord voor en is een woord groot:
 
-+------|---------|------------------------------------------------------------+
++------+---------+------------------------------------------------------------+
 | Naam | Grootte | Waarde                                                     |
-+======|=========|============================================================+
++=====:+=========+============================================================+
 | X    | 8       | x-coördinaat van de positie op het bord, beginnende bij 0. |
-+------|---------|------------------------------------------------------------+
++------+---------+------------------------------------------------------------+
 | Y    | 8       | y-coördinaat van de positie op het bord, beginnende bij 0. |
-+------|---------|------------------------------------------------------------+
++------+---------+------------------------------------------------------------+
 
 Zowel x en y hebben dus als waarde 0 t.e.m. 7.
 
@@ -211,7 +235,7 @@ of niet. Wanneer de er op die meegegeven tegen een pion staat, zal deze
 procedure een 1 in het eax register steken en teruggeven. Anders wordt er
 een nul in gestoken.
 
-###Validate_chess_piece###
+### Validate_chess_piece ###
 > `@@move_from:dword, @@move_to:dword, @@piece_from:dword, @@piece_to:dword`
 
 
@@ -223,4 +247,3 @@ die zet zijn. Wanneer deze op het einde van de *validate* geraakt, betekent
 dit dat het een geldige zet is en wordt het eax register overschreven met
 waarde 1, anders met 0.
 
-################ vim:fo=1nt:tw=80
