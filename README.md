@@ -186,10 +186,10 @@ die geassocieerd is met die toets.
 
 ### Nivageren ###
 We kunnen navigeren over het schaakbord door de toetsen *w,a,d,s* te
-gebruiken. Deze zorgen ervoor dat je respectievelijk naar *boven, links, *
-*rechts en naar onder* navigeert.
+gebruiken. Deze zorgen ervoor dat je respectievelijk naar *boven, links,
+rechts* en naar *onder* navigeert.
 
 ### Selecteren ###
 Om een vakje te selecteren kan je de spatiebalk gebruiken of de enter toets.
 Eenmaal drukken zal het gewenste vakje selecteren en tweemaal drukken zal de
-geselecteerde pion (indien mogelijk) verplaatsen naar het gewenste vakje. 
+geselecteerde pion (indien mogelijk) verplaatsen naar het gewenste vakje.

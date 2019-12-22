@@ -263,7 +263,6 @@ ENDP move_selection
 ; to a nonzero value, and eax and ebx contain the from amd to positions in
 ; STRUC position format, as opposed to pixel format.
 PROC set_selection
-	USES	eax, ecx
 
 	cmp	[CURRENT_MODE], mode_to
 	jz	@@finalize_move

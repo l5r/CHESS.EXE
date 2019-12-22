@@ -29,7 +29,7 @@ PROC do_move
 	shr	bl, 7
 	cmp	[TURN], bl
 	jnz	@@return_fail_2
-	
+
 	mov     eax, [@@move_to]
 	xor     ebx, ebx
 	mov     bl, ah
@@ -40,16 +40,16 @@ PROC do_move
 	push    ebx
 	xor     edx, edx
 	mov     dl, [ebx + eax*8]
-	
+
 	; Don't take a piece of the same color
-	test	dl, KIND_MASK	
+	test	dl, KIND_MASK
 	jz	@@empty_piece_no_color; empty pieces don't have a color.
 	mov	bl, dl
 	xor	bl, cl
 	test	bl, COLOR_MASK
 	jz	@@return_fail_4
 @@empty_piece_no_color:
-	
+
 	; Don't move empty pieces
 	mov	bl, cl
 	and	ebx, KIND_MASK
@@ -227,25 +227,28 @@ PROC validate_rook
 	mov 	dh, 1
 @@validate:
 	cmp	cl, bl ; y == y
-	jz	@@iterate
+	jz	@@iterate_x
 
 	cmp	ch, bh ; x == x
-	jz	@@iterate
+	jz	@@iterate_y
 
 	jmp 	@@not_ok
-@@iterate:
-	cmp 	cl, bl
-	jmp 	@@last_check
+@@iterate_x:
+	cmp 	ch, bh
+	jmp 	@@finish
 	add 	ch, dh
+	call 	is_not_empty, ecx
+	jnz	@@iterate_x
+	jmp 	@@not_ok
+@@iterate_y:
+	cmp 	cl, bl
+	jmp 	@@finish
 	add 	cl, dl
 	call 	is_not_empty, ecx
-	cmp	ecx, 0
-	je 	@@iterate
+	jnz	@@iterate_y
 	jmp 	@@not_ok
-@@last_check:
-	call 	is_not_empty, ebx
-	cmp 	eax, 1
-	jne 	@@not_ok
+@@finish:
+	mov 	eax, 1
 	ret
 @@not_ok:
  	xor 	eax, eax
@@ -270,8 +273,7 @@ PROC validate_knight
 	shl 	ah, 1
 
 	cmp 	ah, 4
-	jle 	@@validate1
-	jmp 	@@not_ok
+	jg 	@@not_ok
 
 	mov 	al, bl
 	sub 	al, cl
@@ -306,15 +308,15 @@ PROC validate_knight
 	jmp 	@@not_ok
 @@last_check:
 	call 	is_not_empty, ebx
-	cmp 	eax, 1
-	jne 	@@not_ok
+	jz	@@not_ok
+	mov 	eax, 1
 	ret
 @@not_ok:
  	xor 	eax, eax
 	ret
 ENDP validate_knight
 
-PROC validate_bishop
+PROC validate_bishop ;KAN NIET 2 naar links
 	ARG 	@@move_from:dword, @@move_to:dword, @@piece_from:dword, @@piece_to:dword
 	USES 	ebx, ecx, edx
 
@@ -348,22 +350,20 @@ PROC validate_bishop
 @@dh_positive:
 	mov 	dh, 1
 @@validate:
-	cmp 	bl, bh ; y2 == x2
-	je 	@@iterate
-	jmp	@@not_ok
+	cmp 	bl, cl; y2 == y1
+	je 	@@not_ok
+	cmp 	bh, ch; x2 == x1
+	je 	@@not_ok
 @@iterate:
 	cmp 	cl, bl
-	jmp 	@@last_check
+	je 	@@finish
 	add 	ch, dh
 	add 	cl, dl
 	call 	is_not_empty, ecx
-	cmp	ecx, 0
-	je 	@@iterate
+	jnz 	@@iterate		;veranderen
 	jmp 	@@not_ok
-@@last_check:
-	call 	is_not_empty, ebx
-	cmp 	eax, 1
-	jne 	@@not_ok
+@@finish:
+	mov 	eax, 1
 	ret
 @@not_ok:
  	xor 	eax, eax
@@ -378,50 +378,64 @@ PROC validate_pawn
 	mov	ebx, [@@move_to]
 
 @@validate:
-	cmp 	cl, bl ; y1 == y2
+
+	cmp 	cl, bl ; yfrom == yto
+	jz 	@@not_ok
+
+	cmp 	ch, bh ; xfrom == xto
 	jz	@@forward_move
 
-	mov 	al, bl
-	sub 	al, cl
-	shl	al, 1
+	mov 	ah, bh ;move xto into al (2)
+	sub 	ah, ch ;sub xfrom from al (1)
+	shl	ah, 1
 
-	cmp 	al, 1
+	cmp 	ah, 1
 	jne	@@not_ok
-	jmp 	@@last_check
+	mov 	eax, 1
+	ret
 @@forward_move:
-	mov 	ah, bh
-	sub 	ah, ch
-	cmp 	ah, 0
-	jg 	@@validate_x
+	mov 	al, bl 	;move yto into al (3)
+	sub 	al, cl	;sub yfrom from al (1)
+	cmp 	al, 0
+	jg	@@validate_y_down
+	jmp	@@validate_y_up
+@@validate_y_down:
+	cmp 	al, 1
+	je	@@last_check
 
-	sub 	ah, bh	; add positive val to inter reg
-	mov 	bh, ah	; restore in bh
-@@validate_x:
-	cmp 	ch, 2
-	je 	@@first_move
+	cmp 	cl, 1 ;fromy is 1
+	je 	@@first_move_down
+	jmp 	@@not_ok
+@@validate_y_up:
+	cmp 	al, -1
+	je 	@@last_check
 
-	cmp 	ch, 7
-	je 	@@first_move
-
-	cmp 	bh, 1
+	cmp 	cl, 6 ;fromy is 6
+	je 	@@first_move_up
+	jmp 	@@not_ok
+@@first_move_down:
+	cmp 	al, 2
 	jne	@@not_ok
-	jmp 	@@last_check
-@@first_move:
-	cmp 	bh, 2
-	jg	@@not_ok
-	dec 	ch
+	inc 	cl
 	call 	is_not_empty, ecx
-	cmp 	eax, 1
-	je 	@@not_ok
+	jz 	@@not_ok 		;verander nog
+	jmp 	@@last_check
+@@first_move_up:
+	cmp 	al, -2
+	jne 	@@not_ok
+	dec 	cl
+	call 	is_not_empty, ecx
+	jz 	@@not_ok		;verander nog
 @@last_check:
 	call 	is_not_empty, ebx
-	cmp 	eax, 1
-	jne 	@@not_ok
+	jz 	@@not_ok 		;verander nog
+	mov 	eax, 1
 	ret
 @@not_ok:
  	xor 	eax, eax
 	ret
 ENDP validate_pawn
+
 
 DATASEG
 
