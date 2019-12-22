@@ -72,6 +72,9 @@ PROC do_move
 	not	[TURN]
 	and	[TURN], 1h
 
+	xor	eax, eax
+	mov	al, dl
+
 	jmp	@@return
 
 @@return_fail_2:
