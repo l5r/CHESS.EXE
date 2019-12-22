@@ -194,14 +194,13 @@ ENDP validate_queen
 
 PROC validate_rook
 	ARG 	@@move_from:dword, @@move_to:dword, @@piece_from:dword, @@piece_to:dword
-	USES 	ebx
+	USES 	ecx, ebx, edx
 
 	mov	ecx, [@@move_from]
 	mov	ebx, [@@move_to]
 
 	mov 	dl, bl	; y offset
 	sub 	dl, cl
-	cmp 	dl, 0
 	jne 	@@dl_not_zero
 	jmp 	@@dh_offset
 @@dl_not_zero:
@@ -372,63 +371,67 @@ ENDP validate_bishop
 
 PROC validate_pawn
 	ARG 	@@move_from:dword, @@move_to:dword, @@piece_from:dword, @@piece_to:dword
-	USES 	ebx, ecx
+	USES 	ebx, ecx, edx
 
 	mov	ecx, [@@move_from]
-	mov	ebx, [@@move_to]
+	mov	edx, [@@move_to]
 
-@@validate:
+	; Normalise positions to the POV of black (higher y => forwards)
+	test	[@@piece_from], COLOR_MASK
+	jz	@@normalisation_done
+	mov	ax, 0707h
+	sub	ax, cx; Underflow shouldn't be possible
+	mov	cx, ax
+	mov	bx, 0707h
+	sub	bx, dx
+	mov	dx, bx
+@@normalisation_done:
+	
+	sub	ch, dh; xfrom - xto
+	jnz	@@diagonal_move
 
-	cmp 	cl, bl ; yfrom == yto
-	jz 	@@not_ok
+	sub	cl, dl; yto - yfrom
+	cmp	cl, -1
+	jz	@@ok
 
-	cmp 	ch, bh ; xfrom == xto
-	jz	@@forward_move
+	cmp	cl, -2
+	jnz	@@not_ok
 
-	mov 	ah, bh ;move xto into al (2)
-	sub 	ah, ch ;sub xfrom from al (1)
-	shl	ah, 1
+	; Check if starting on first row
+	;cmp	dl, 1
+	;jg	@@not_ok
 
-	cmp 	ah, 1
-	jne	@@not_ok
-	mov 	eax, 1
-	ret
-@@forward_move:
-	mov 	al, bl 	;move yto into al (3)
-	sub 	al, cl	;sub yfrom from al (1)
-	cmp 	al, 0
-	jg	@@validate_y_down
-	jmp	@@validate_y_up
-@@validate_y_down:
-	cmp 	al, 1
-	je	@@last_check
+	; Average from and to to get the piece inbetween.
+	mov	eax, [@@move_from]
+	add	eax, [@@move_to]
+	shr	ax, 1
+	call	is_not_empty, eax
+	jnz	@@ok
+	jmp	@@not_ok
 
-	cmp 	cl, 1 ;fromy is 1
-	je 	@@first_move_down
-	jmp 	@@not_ok
-@@validate_y_up:
-	cmp 	al, -1
-	je 	@@last_check
+@@diagonal_move:
+	; Diagonal move is only allowed when taking a piece.
+	test	[@@piece_to], KIND_MASK
+	jz	@@not_ok
+	
+	; abs(ch)
+	; https://stackoverflow.com/questions/2639173/x86-assembly-abs-implementation#14194764
+	mov	al, ch
+	sar	al, 1
+	xor	ch, al
+	sub	ch, al
 
-	cmp 	cl, 6 ;fromy is 6
-	je 	@@first_move_up
-	jmp 	@@not_ok
-@@first_move_down:
-	cmp 	al, 2
-	jne	@@not_ok
-	inc 	cl
-	call 	is_not_empty, ecx
-	jz 	@@not_ok 		;verander nog
-	jmp 	@@last_check
-@@first_move_up:
-	cmp 	al, -2
-	jne 	@@not_ok
-	dec 	cl
-	call 	is_not_empty, ecx
-	jz 	@@not_ok		;verander nog
-@@last_check:
-	call 	is_not_empty, ebx
-	jz 	@@not_ok 		;verander nog
+	; Only allow going 1 place to the side diagonally
+	cmp	ch, 1
+	jnz	@@not_ok
+
+	; Only allow going 1 space forwards
+	sub	cl, dl; yfrom - yto
+	cmp	cl, -1
+	jz	@@ok
+	jmp	@@not_ok
+	
+@@ok:
 	mov 	eax, 1
 	ret
 @@not_ok:
