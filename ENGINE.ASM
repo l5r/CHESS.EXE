@@ -146,7 +146,7 @@ ENDP validate_king
 
 PROC validate_queen
 	ARG 	@@move_from:dword, @@move_to:dword, @@piece_from:dword, @@piece_to:dword
-	USES 	ebx, ecx
+	USES 	ebx, ecx, edx
 
 	mov	ecx, [@@move_from]
 	mov	ebx, [@@move_to]

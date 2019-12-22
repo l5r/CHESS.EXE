@@ -89,7 +89,7 @@ start:
 	jz	@@end_pressed_key
 	call	do_move, eax, ebx
 	mov	bh, al
-	and	bh, KIND_MASK
+	and	bh, 07Fh ;KIND_MASK
 	cmp	bh, 1
 	jz	@@win
 	call	draw_board
@@ -133,7 +133,7 @@ start:
 ; -------------------------------------------------------------------
 DATASEG
 
-WIN_MESSAGE_TABLE DD WIN_BLACK, WIN_WHITE
+WIN_MESSAGE_TABLE DD WIN_WHITE, WIN_BLACK
 
 WIN_BLACK DB 'Black wins!$'
 WIN_WHITE DB 'White wins!$'
