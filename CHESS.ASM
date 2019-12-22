@@ -107,7 +107,7 @@ start:
 
 	; Write message
 	mov	ah, 02h
-	mov	dx, 0A0Ah
+	mov	dx, 030Fh
 	mov	bh, 0
 	int	10h
 	mov	ah, 09h

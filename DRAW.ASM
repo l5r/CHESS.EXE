@@ -22,6 +22,9 @@ VMEMADDR EQU 0A0000h		; video memory address
 SCR_WIDTH EQU 320		; screen width
 SCR_HEIGHT EQU 200		; screen height
 SQUARE_SIZE EQU 16
+BOARD_X EQU (SCR_WIDTH / 2 - SQUARE_SIZE * 4)
+BOARD_Y EQU (SCR_HEIGHT / 2 - SQUARE_SIZE * 4)
+BOARDADDR EQU VMEMADDR + (BOARD_Y * SCR_WIDTH + BOARD_X)
 PX_UNSET EQU 0DEADBEEFh
 
 ENUM selection_mode mode_from, mode_to
@@ -83,7 +86,7 @@ PROC draw_square
 	mov	edx, SCR_WIDTH
 	mul	edx
 
-	add	eax, VMEMADDR
+	add	eax, BOARDADDR
 	add	eax, [@@x]
 	mov	edi, eax
 
@@ -129,7 +132,7 @@ PROC draw_piece
 	mov	edx, SCR_WIDTH
 	mul	edx
 
-	add	eax, VMEMADDR
+	add	eax, BOARDADDR
 	add	eax, [@@x]
 
 	xor	dh, dh
@@ -350,7 +353,7 @@ PROC highlight_square ;WPO4
 	add	eax, ebx 	; move to column
 
 	; Compute top left corner address
-	mov edi, VMEMADDR
+	mov edi, BOARDADDR
 	add edi, eax
 
 	; Plot the top horizontal edge.
