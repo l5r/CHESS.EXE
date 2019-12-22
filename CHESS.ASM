@@ -45,8 +45,6 @@ start:
 	mov 	ah, 0h
 	int	16h
 
-	mov 	edx, 10h
-
 	cmp 	ah, 01Eh ; A
 	jz	@@left_key_pressed
 	cmp	ah, 020h ; D
