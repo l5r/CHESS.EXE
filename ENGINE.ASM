@@ -432,6 +432,9 @@ PROC validate_pawn
 	sub	ch, dh; xfrom - xto
 	jnz	@@diagonal_move
 
+	test	[@@piece_to], KIND_MASK
+	jnz	@@not_ok
+
 	sub	cl, dl; yto - yfrom
 	cmp	cl, -1
 	jz	@@ok
